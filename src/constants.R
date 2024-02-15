@@ -5,9 +5,18 @@ MOD_TYPE_PRETTY <- c(
   m = "m5",
   c = "m4"
 )
+MOD_TYPE_SINGLE <- c(
+  "6mA" = "a",
+  "5mC" = "m",
+  "4mC" = "c"
+)
 
 
 PLOT_COLORS <- c(
-  green="forestgreen",
-  purple="#8C228C"
+  light_blue="#B9CFF0",
+  dark_blue="#404080",
+  light_green="#9FE2BF",
+  dark_green="#69B3A2"
 )
+
+
