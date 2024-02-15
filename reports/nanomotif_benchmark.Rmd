@@ -1,0 +1,246 @@
+---
+title: "benchmark"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+
+```{r}
+pacman::p_load(
+  "data.table",
+  "ggplot2",
+  "stringr",
+  "tidyr",
+  "dplyr",
+  "ggtext",
+  "pheatmap",
+  "purrr",
+  "here",
+  "ggnewscale"
+)
+getwd()
+source("../src/constants.R")
+source("../src/themes.R")
+source("../src/utility.R")
+```
+
+```{r}
+folder_path <- "../data/nanomotif_benchmarks"
+
+# List all files in the directory
+files <- list.files(path = folder_path, recursive = TRUE, full.names = TRUE)
+
+
+extract_info <- function(filename) {
+  list(
+    sample = str_extract(filename, "(?<=benchmarks/)[^/]+(?=-contig)"),
+    #contig = str_extract(filename, "contig_\\d+"),
+    coverage = as.integer(str_extract(filename, "\\d+(?=x)")),
+    #motif = str_extract(filename, "(?<=x\\.)[A-Za-z]+(?=\\d+)"),
+    #pos = as.integer(str_extract(filename, "(?<=[A-Z])\\d+(?=[am]\\.)")),
+    #mod_type = str_extract(filename, "[A-Za-z]+(?=\\.\\d+\\.motifs)"),
+    n_motif = as.integer(str_extract(filename, "\\d+(?=\\.motifs)"))
+  )
+}
+benchmark <- data.table(files)[
+  , fread(files), by = files
+][, c("sample", "coverage", "n_motif") := {
+  info <- extract_info(files)
+  .(info$sample, info$coverage, info$n_motif)
+}, by = files][
+    , coverage_factor := factor(coverage, levels = unique(sort(coverage)))
+  ][
+    , n_motif_factor := factor(n_motif, levels = unique(sort(n_motif, decreasing = TRUE)))
+  ][
+  , motif := unlist(lapply(motif, regex_to_iupac))
+]
+```
+
+
+
+
+```{r}
+benchmark_heatmap <- function(data) {
+  hm <- ggplot(data) + 
+  aes(x =n_motif_factor, y = coverage_factor) + 
+  geom_tile(aes(fill = recall), color = "black") + 
+  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
+  facet_wrap(~motif, ncol = 2) + 
+  geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%"))) +
+  theme_minimal() +
+  coord_fixed(ratio= 1, clip="off") +
+  labs(
+    x = "Number of motif occourances",
+    y = "Read coverage",
+    title = unique(data$sample)
+  )
+  return(hm) 
+}
+```
+
+```{r}
+plot_sample = "Geobacillus_3"
+plot_data = benchmark[sample == plot_sample][
+  , motif := factor(motif, levels = c("GATC", "GRNGAAGY", "ACCCA", "CCAAAT"))
+]
+pg <- benchmark_heatmap(plot_data)
+pg
+```
+
+
+```{r}
+plot_sample = "Geobacillus_3"
+plot_data = benchmark[sample == plot_sample][
+  , motif := factor(motif, levels = c("GATC", "GRNGAAGY", "ACCCA", "CCAAAT"))
+]
+pg <- benchmark_heatmap(plot_data)
+ggsave("../figures/geobacillus_benchmark_heatmap.png", pg, bg = "white", width = 7, height = plot_height)
+
+plot_sample = "E.coli_K12_stat_3"
+pg <- benchmark_heatmap(benchmark[sample == plot_sample][
+  , motif := factor(motif, levels = c("GATC", "AACNNNNNNGTGC", "CCWGG", "GCACNNNNNNGTT"))
+])
+plot_height <- 0.2 + (3 * ((length(unique(benchmark[sample == plot_sample]$motif)) - 1) %/% 2 +1))
+
+ggsave("../figures/ecoli_benchmark_heatmap.png", pg, bg = "white", width = 7, height = plot_height)
+
+
+plot_sample = "M.ruber_1"
+pg <- benchmark_heatmap(benchmark[sample ==plot_sample][
+  , motif := factor(motif, levels = c("GATC", "GGGAGC", "AATT", "TTAA", "CCANNNNNNTGCC", "GGCANNNNNNTGG", "CTCGAG"))
+])
+plot_height <- 0.2 + (3 * ((length(unique(benchmark[sample == plot_sample]$motif)) - 1) %/% 2 +1))
+ggsave("../figures/mruber_benchmark_heatmap.png", pg, bg = "white", width = 7, height = plot_height)
+```
+
+
+
+```{r}
+
+main_plot_data <- rbind(
+  benchmark[sample == "E.coli_K12_stat_3"][motif == "GATC"],
+  benchmark[sample == "Geobacillus_3"][motif == "GRNGAAGY"],
+  benchmark[sample == "M.ruber_1"][motif == "GGCANNNNNNTGG"]
+)
+main_plot_data[
+  , motif_markdown := paste0(
+      str_sub(motif, 1, position),
+      "<strong>",
+      str_sub(motif, position+1, position+1),
+      "<sub><sup>",
+      map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+      "</sup></sub>",
+      "</strong>",
+      str_sub(motif, position+2, -1)
+  )
+]
+
+
+
+hm <- ggplot(main_plot_data) + 
+  aes(x =n_motif_factor, y = coverage_factor) + 
+  geom_tile(aes(fill = recall), color = "black") + 
+  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
+  facet_wrap(~motif_markdown, ncol = 3) + 
+  geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%"))) +
+  theme_minimal() +
+  theme(
+    strip.text = element_markdown()
+  ) +
+  coord_fixed(ratio= 1, clip="off") +
+  labs(
+    x = "Number of motif occourances",
+    y = "Read coverage"
+  )
+
+ggsave("../figures/select_benchmark_heatmap.png", hm, bg = "white", width = 10, height = 5)
+
+```
+
+
+
+
+
+
+
+
+# Microbemod
+
+
+```{r}
+
+load_microbemod <- function(path) {
+  ### Load microbemod output and select motif and convert information to be compatiable with benchmark parameters
+  microbemod <- fread(path)[
+    !is.na(Methylated_position_2), complement_motif := unlist(lapply(Motif, reverse_complement_iupac))
+  ][
+    , mod_position := Methylated_position_1 - 1
+  ][
+    , mod_type := unlist(lapply(Methylation_type, function(x) MOD_TYPE_SINGLE[x]))
+  ][
+    , motif_length := unlist(lapply(Motif, str_length))
+  ][
+    , complement_position := motif_length - Methylated_position_2
+  ][, c("Motif", "mod_position", "complement_motif", "complement_position", "mod_type")][!is.na(complement_motif)]
+  return(microbemod)
+}
+
+
+check_motif_identified_microbemod <- function(path, motif, position, modification_type) {
+  ### Check if motif,pos,type is identified in a microbemod output
+  microbemod_output <- load_microbemod(path)
+  microbemod_motif_match <- microbemod_output[
+      (Motif == motif & mod_position == position & mod_type == modification_type) | 
+      (complement_motif == motif & complement_position == position & mod_type == modification_type)
+    ]
+  return(nrow(microbemod_motif_match) > 0 )
+}
+
+parse_benchmark_paths_to_datatable <- function(root_path, extension) {
+  ### Identifies files in benchmark folder and returns the benchmark variables matching the regex pattern
+  files <- list.files(path = root_path,pattern = extension,  full.names = TRUE, recursive = TRUE, include.dirs = TRUE)
+  #.../{sample}-contig{contig}-nmotif{nmotif}-motif{motif}-type{mod_type}-pos{pos}-cov{coverage}/chunk_{chunk}
+  pattern <- ".*/(.+)-contig(.+)-nmotif(\\d+)-motif(.+)-type(\\w+)-pos(\\d+)-cov(\\d+)/chunk_(\\d+)"
+  
+  # Initialize an empty data.table
+  dt <- data.table(sample = character(), contig = character(), nmotif = integer(), 
+                   motif = character(), mod_type = character(), pos = integer(), 
+                   coverage = integer(), chunk = integer(), path = character())
+  
+  for (file in files) {
+    matches <- regmatches(file, regexec(pattern, file))
+    if (length(matches[[1]]) > 1) {
+      dt <- rbind(
+        dt, 
+        data.table(
+          sample = matches[[1]][2], contig = matches[[1]][3], 
+          nmotif = as.integer(matches[[1]][4]), motif = matches[[1]][5], 
+          mod_type = matches[[1]][6], pos = as.integer(matches[[1]][7]), 
+          coverage = as.integer(matches[[1]][8]), chunk = as.integer(matches[[1]][9]),
+          path = file
+        )
+      )
+    }
+  }
+  return(dt)
+}
+```
+
+```
+
+
+```{r}
+# Test mapplt with check microbemod 
+benchmark_files = rep("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/E.coli_K12_stat_3/microbemod/microbemod_motifs.tsv", 4)
+motif_queries = c("GCACNNNNNNGTT","GCACNNNNNNG","GCACNNNNNNGTT", "GCACNNNNNNGTT")
+pos_queries = c(2, 2, 3, 2)
+type_queries = c("a", "a", "a", "m")
+
+unlist(mapply(check_motif_identified_microbemod, benchmark_files, motif_queries, pos_queries, type_queries))
+```
+
+
