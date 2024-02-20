@@ -1,0 +1,249 @@
+---
+title: "mtase_linker_figures"
+author: "Jeppe Støtt Bøjer"
+date: "2024-02-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(tidyverse)
+library(patchwork)
+```
+
+# Monoculture + Zymo MTase-Linker Analysis
+
+### Loading MTase-Linker tables
+```{r, echo = FALSE, message=FALSE}
+E.coli_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/e_coli_K12/mtase_linker/MTase_assignment_table.tsv")
+Geo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/MTase_assignment_table.tsv")
+M.Ruber_MAT <- read_tsv("/projects/
+dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
+Zymo_MAT <- read_tsv("/projects/
+dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
+```
+
+```{r, message=FALSE}
+E.coli_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/e_coli_K12/mtase_linker/nanomotif_assignment_table.tsv")
+Geo_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/nanomotif_assignment_table.tsv")
+M.Ruber_NAT <- read_tsv("/projects/
+dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/nanomotif_assignment_table.tsv")
+Zymo_NAT <- read_tsv("/projects/
+dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")
+```
+
+### Combining tables
+```{r}
+TMAT <- rbind(E.coli_MAT, Geo_MAT, M.Ruber_MAT, Zymo_MAT)
+TNAT <- rbind(E.coli_NAT, Geo_NAT, M.Ruber_NAT, Zymo_NAT)
+
+#Bin to species names dictionary
+TMAT_bin_species_dic <- c("bin.c1" = "Pseudomonas aeruginosa",
+                          "bin.c2" = "Escherichia coli (ZymoHMW)",
+                          "bin.c3" = "Salmonella enterica",
+                          "bin.c4" = "Bacillus spizizenii",
+                          "bin.c5" = "Listeria monocytogenes",
+                          "bin.c6" = "Enterococcus faecalis",
+                          "bin.c7" = "Staphylococcus aureus",
+                          "e_coli_K12" = "Escherichia coli K-12",
+                          "geobacillus" = "P. thermoglucosidadius",
+                          "M.ruber" = "Meiothermus ruber"
+                          )
+
+TMAT <- TMAT %>%
+  mutate(`bin name` = recode(`bin name`, !!!TMAT_bin_species_dic)) %>%
+  mutate(bin = `bin name`) %>%
+  filter(!is.na(bin))
+
+TNAT <- TNAT %>%
+  mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
+  filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & assigned != FALSE)) %>% #filter ambiguous motifs 
+  mutate(sample = "monocultures") 
+  
+```
+
+### Counting number of genes and motifs in each genome.
+```{r}
+# Group by 'bin name' and summarize
+MTase_count_df <- TMAT %>%
+  group_by(bin) %>%
+  summarize(
+    `MTase_count` = n(),
+    `assigned_count_MTase` = sum(!is.na(`detected_motif`))
+  )
+
+# Group by 'bin name' and summarize
+nanomotif_count_df <- TNAT %>%
+  group_by(`bin`) %>%
+  summarize(
+    `motif_count` = n(),
+    `assigned_count_motif` = sum(assigned)
+  )
+
+# Merge MTase and motif counts into one dataframe 
+TMAT_count_df <- merge(MTase_count_df, nanomotif_count_df, by = 'bin', all = TRUE ) %>%
+  arrange(desc(MTase_count)) %>%
+  mutate(bin = factor(bin, levels = unique(bin)))
+
+TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"assigned_count_MTase") %>%
+  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif")))
+```
+
+### Barplot
+
+```{r}
+mono_count_plot <- ggplot(TMAT_count_df_long, aes(x = as.factor(bin), y = counts, fill = count_type)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  scale_fill_manual(
+    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "assigned_count_motif" = "orange"),
+    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "assigned_count_motif" = "Assigned motifs"),
+    breaks = c("MTase_count", "motif_count", "assigned_count_motif")) + 
+  labs(title = "Monocultures", x = NULL, y = "Count", fill = "Count Type") +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(0, 11, by = 2), limits = c(0, 11)) +
+  theme_classic() +
+  theme(
+    text = element_text(size = 14, color = "black"),
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 10),
+    plot.title = element_text(size = 12),
+    plot.caption = element_text(hjust = 0),
+    legend.title = element_blank(),
+    legend.position = "none"
+  )
+
+mono_count_plot
+```
+
+### Alluvial plot
+```{r}
+
+allu_MTase_count_df <- TMAT %>%
+  group_by(sub_type, RM_system, mod_type, assigned) %>%
+  summarize(
+    `MTase_count` = n(),
+    `assigned_count` = sum(!is.na(`detected_motif`)),
+    .groups = 'drop')
+
+allu_TNAT_count_df <- TNAT %>%
+  group_by(`bin`, `motif_type`, `mod_type`, `assigned`) %>%
+  summarize(
+    `motif_count` = n(),
+    `assigned_count` = sum(assigned),
+    .groups = 'drop'
+  )
+
+
+ggplot(allu_TNAT_count_df, aes(y = motif_count, axis1 = motif_type, axis2 = assigned)) +
+  geom_alluvium(aes(fill = motif_type)) +
+  geom_stratum(width = 1/12, fill = "white", color = "black", alpha = 0.5) + 
+   geom_label(stat = "stratum", aes(label = after_stat(stratum)), alpha = 0.5) +
+  #scale_fill_brewer(type = "qual", palette = "Set3") +
+  scale_x_continuous(breaks = c(1, 2), labels = c("motif type", "Assigned"), limits = c(0.5, 2.5)) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+          axis.text.x = element_text(size = 12),
+          axis.ticks.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.title.y = element_blank(),
+          strip.text.x = element_text(size = 10),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          strip.background = element_rect(fill = "transparent", colour = "transparent"))
+```
+
+### Creating figure
+```{r}
+png("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/mtase_linker_mono_count.png", res = 600, height = 10, width = 20, units = "cm")
+mono_count_plot
+dev.off()
+```
+
+# Simple fecal
+
+### Loading MTase-Linker tables
+```{r}
+sfecal_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/PaPr00000216MP/mtase_linker/MTase_assignment_table.tsv")
+sfecal_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/PaPr00000216MP/mtase_linker/nanomotif_assignment_table.tsv") %>%
+  mutate(sample = "sfecal")
+```
+
+### Counting number of genes and motifs in each genome.
+```{r}
+### Sfecal ###
+
+# Group by 'bin' and summarize
+sfecal_MTase_count_df <- sfecal_MAT %>%
+  mutate(bin = `bin name`) %>%
+  group_by(`bin`) %>%
+  summarize(
+    MTase_count = n(),
+    assigned_count_MTase = sum(!is.na(`detected_motif`))
+  )
+
+# Group by 'bin name' and summarize
+sfecal_nanomotif_count_df <- sfecal_NAT %>%
+  group_by(`bin`) %>%
+  summarize(
+    motif_count = n(),
+    assigned_count_motif = sum(assigned)
+  ) 
+
+# Merge all MTase and motif counts into one dataframe
+sfecal_count_df <- merge(sfecal_MTase_count_df, sfecal_nanomotif_count_df, by = 'bin', all = TRUE ) %>%
+  arrange(desc(MTase_count)) %>%
+  mutate(bin = factor(bin, levels = unique(bin))) %>%
+  filter(!is.na(bin))
+
+sfecal_count_df_long <- pivot_longer(sfecal_count_df, cols = c(MTase_count, assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"assigned_count_MTase") %>%
+  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif"))) %>%
+  mutate(bin = sub("^[^\\.]*\\.", "", bin)) %>%
+  filter(!(bin %in% c("bin.2.1", "bin.2.2")))
+```
+
+
+### Barplot
+```{r}
+sfecal_count_plot <- ggplot(sfecal_count_df_long, aes(x = as.factor(bin), y = counts, fill = count_type)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  scale_fill_manual(
+    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "assigned_count_motif" = "orange"),
+    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "assigned_count_motif" = "Assigned motifs"),
+    breaks = c("MTase_count", "motif_count", "assigned_count_motif")) + 
+  labs(title = "Simple fecal", x = NULL, y = "Count", fill = "Count Type") +
+  theme_minimal() +
+  scale_y_continuous(breaks = seq(0, 7, by = 2), limits = c(0, 7)) +
+  theme_classic() +
+  theme(
+    text = element_text(size = 14, color = "black"),
+    axis.text = element_text(color = "black"),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 10),
+    plot.title = element_text(size = 12),
+    plot.caption = element_text(hjust = 0),
+    legend.title = element_blank(),
+    legend.position = "bottom"
+  )
+
+sfecal_count_plot
+```
+
+### Creating figure
+```{r}
+png("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/mtase_linker_sfecal_count.png", res = 600, height = 10, width = 20, units = "cm")
+sfecal_count_plot
+dev.off()
+```
+
+
+```{r}
+png("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/mtase_linker_mono_sfecal_count.png", res = 600, height = 20, width = 20, units = "cm")
+wrap_plots(mono_count_plot, sfecal_count_plot, 
+           nrow = 2, ncol = 1, widths = c(1, 1))
+dev.off()
+```
