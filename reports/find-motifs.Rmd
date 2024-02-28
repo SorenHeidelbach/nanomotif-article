@@ -35,9 +35,23 @@ direct_label = "Direct"
 indirect_label = "Indirect"
 direct_color = PLOT_COLORS[["dark_blue"]]
 indirect_color = PLOT_COLORS[["dark_green"]]
+get_axis_order <- function(wide_df) {
+  set.seed(1)
+  feature_matrix = as.matrix(wide_df[,-1] )
+  y_row_order <- pheatmap::pheatmap(as.matrix(feature_matrix), silent = TRUE)$tree_row$order
+  y_factor_order <- wide_df$name[y_row_order]
+  x_row_order <- pheatmap::pheatmap(t(as.matrix(feature_matrix)), silent = TRUE)$tree_row$order
+  x_factor_order <- colnames(wide_df[,-1])[x_row_order]
+  return(list(
+    y = y_factor_order,
+    x = x_factor_order
+  ))
+}
+
+
 ```
 
-
+# Zymo + mono
 
 ```{r}
 
@@ -221,25 +235,6 @@ monoculture <- rbind(
 
 
 ```{r}
-get_axis_order <- function(wide_df) {
-  set.seed(1)
-  feature_matrix = as.matrix(wide_df[,-1] )
-  y_row_order <- pheatmap::pheatmap(as.matrix(feature_matrix), silent = TRUE)$tree_row$order
-  y_factor_order <- wide_df$name[y_row_order]
-  x_row_order <- pheatmap::pheatmap(t(as.matrix(feature_matrix)), silent = TRUE)$tree_row$order
-  x_factor_order <- colnames(wide_df[,-1])[x_row_order]
-  return(list(
-    y = y_factor_order,
-    x = x_factor_order
-  ))
-}
-
-
-```
-
-
-
-```{r}
 monoculture <- monoculture[!is.na(name)][motif_type != "ambiguous"][, max_mean := max(mean, na.rm = TRUE), by = motif][
   max_mean > 0.5
 ]
@@ -335,17 +330,21 @@ ggsave(
 
 ```
 
+# Simple Fecal
 
 
 ```{r}
+motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs.tsv")
+motifs_scored <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs-scored.tsv")
+bin_info <- fread("../data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv")
+bin <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/bins.tsv", header = FALSE)
+colnames(bin) <-  c("contig", "bin")
+bin_associated_contigs <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/include_contigs.tsv")
+bin_associated_contigs <- bin_associated_contigs[contig_bin == "unbinned"]
 
-
-motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/motifs.tsv")[
+motifs[
   , directly := TRUE
 ]
-
-motifs_scored <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/motifs-scored.tsv")
-
 motifs <- merge(
   motifs_scored,
   motifs,
@@ -354,19 +353,35 @@ motifs <- merge(
   suffixes = c("", ".drop")
 )
 
-bin <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/bins.tsv", header = FALSE)
-colnames(bin) <-  c("contig", "bin")
-bin[, n_contigs := .N, by = bin]
-motif_full <- motifs %>%
-  merge(bin, by = "contig", all.x = TRUE) 
+bin_info[
+  , bin_quality := case_when(
+    Completeness > 90 & Contamination < 5 ~ "HQ",
+    Completeness > 50 & Contamination < 10 ~"MQ",
+    TRUE ~ "LQ"
+  )
+]
 
+motif_full <- motifs %>%
+  merge(bin, by = "contig", all.x = TRUE)  %>% 
+  merge(bin_info, by = "bin", all.x = TRUE) %>% 
+  merge(bin_associated_contigs, by = "contig", all.x = TRUE, suffixes = c("", ".assign"))
 
 motif_full <- motif_full[
-  , mean := n_mod / (n_mod + n_nomod)
+  , mean := n_mod / (n_mod + n_nomod - 1)
+][
+  , bin := fifelse(
+    !is.na(bin.assign) & contig_bin == "unbinned", bin.assign, bin
+  )
 ][
   , bin := str_extract(bin, "bin.*")
 ][
-  , bin := paste0(bin, ", <sup><sub>n=", n_contigs, "</sub></sup>")
+  , bin := fifelse(
+    !is.na(bin.assign) & contig_bin == "unbinned", paste0("Assigned"), bin
+  )
+][
+  , bin := fifelse(
+    is.na(bin), paste0("Unassigned"), bin
+  )
 ][
   , name := contig
 ][
@@ -381,16 +396,19 @@ motif_full <- motif_full[
       str_sub(motif, mod_position+2, -1)
   )
 ][
-  , simple_count := fcase(
-    (n_mod + n_nomod) > 10, "",
-    (n_mod + n_nomod) <= 10, as.character(n_mod + n_nomod - 1)
-  )
-][
   , directly := fifelse(is.na(directly), indirect_label, direct_label)
+][
+  , n_contigs := length(unique(contig)), by = bin
+][
+  , bin := fifelse(
+      is.na(bin_quality), 
+      paste0(bin, "<sup><sub> n=", n_contigs, "</sub></sup>"), 
+      paste0(bin_quality, "-", bin, "<sup><sub> n=", n_contigs, "</sub></sup>"))
 ]
 
 
-bin_motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/bin-motifs.tsv")[
+bin_motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/bin-motifs.tsv")
+bin_motifs[
   , mean := n_mod_bin / (n_mod_bin + n_nomod_bin)
 ][
   , name := bin
@@ -406,18 +424,25 @@ bin_motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaP
       str_sub(motif, mod_position+2, -1)
   )
 ]
+bin_consensus_motifs <- bin_motifs$motif
+
 
 ```
 
 
-
-
-
+```{r}
+unique(plot_data, by = "bin")[order(bin_quality, n_contigs)]$bin
+```
 
 
 ```{r}
 y_order <- unique(motif_full[order(bin, mean)]$name)
-plot_data <- motif_full[!is.na(n_contigs)]
+plot_data <- motif_full[!str_detect(bin, "NA") ][!str_detect(bin, "Unassigned")][
+  motif %in% bin_consensus_motifs
+]
+plot_data[
+  , bin := factor(bin, levels = unique(plot_data, by = "bin")[order(bin_quality, -Completeness)]$bin)
+]
 axis_orders <- get_axis_order(dcast(plot_data, name ~ motif_markdown, value.var = "mean", fill = 0, fun.aggregate = mean))
 fecal_simple_hm <- ggplot(plot_data) +
   aes(x = factor(motif_markdown, levels = axis_orders[["x"]]), y = factor(name, levels =  axis_orders[["y"]])) +
@@ -447,13 +472,13 @@ fecal_simple_hm <- ggplot(plot_data) +
   theme(
     axis.text.y = element_blank(),# element_markdown(vjust = 0.5, hjust = 0, size = 0.5),
     axis.ticks.y = element_blank(),
-    axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
+    axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 8),
     panel.grid.minor = element_blank(),  # Remove minor gridlines
     panel.background = element_blank(),   # Remove panel background,
     panel.margin = unit(0, "lines"),
     panel.border = element_rect(colour = "#141414", fill=NA, linewidth = 0.1),
     strip.placement = "outside",
-    strip.text.y.left = element_markdown(angle = 0, vjust = 0.5, hjust = 0),
+    strip.text.y.left = element_markdown(angle = 0, vjust = 0.5, hjust = 0, size =15),
     strip.background = element_blank()
   ) +
   labs(
@@ -469,8 +494,27 @@ fecal_simple_hm <- ggplot(plot_data) +
   guides(color = guide_legend(override.aes = list(alpha = 1, shape = c(16)))) # Adjust this line as needed
 
 
-height_hm <- 4.5
-width_hm <- 8
+```
+
+
+
+```{r}
+fecal_simple_hm
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+height_hm <- 8
+width_hm <- 12
 plot_name <- "fecal_simple_hm"
 ggsave(
   paste0("../figures/", plot_name, ".png"),
@@ -494,21 +538,7 @@ ggsave(
   dpi = "retina",
   bg = "white")
 
-
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -542,6 +572,5 @@ ggsave(
   dpi = "retina",
   bg = "white")
 ```
-
 
 
