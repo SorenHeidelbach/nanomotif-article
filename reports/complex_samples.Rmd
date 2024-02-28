@@ -28,76 +28,148 @@ source("../src/themes.R")
 source("../src/utility.R")
 direct_label = "Direct"
 indirect_label = "Indirect"
-sample = "anaerobic_digestor"
 ```
 
 
 ```{r}
-motifs_direct <-  fread(paste0("../data/", sample, "/nanomotif/motifs.tsv"))[, directly := TRUE]
-motifs_score <- fread(paste0("../data/", sample, "/nanomotif/motifs-scored.tsv"))
-motifs <- merge(
-  motifs_score, motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
-  , directly := fifelse(is.na(directly), indirect_label, direct_label)
-]
-
-euk <- fread(paste0("../data/", sample, "/mmlong2_lite/tmp/eukfilt/tiara"))
-bin <- fread(paste0("../data/", sample, "/mmlong2_lite/tmp/binning/contig_bin.tsv"), header = FALSE)
-colnames(bin) <-  c("contig", "bin")
-bin[, n_contigs := .N, by = bin]
-tax <- fread(paste0("../data/", sample, "/gtdb-tk_mmlong2/gtdbtk.bac120.summary.tsv"))
-
-motifs_full <- merge(motifs, euk, by.x = "contig", by.y = "sequence_id", all.x = TRUE)[class_fst_stage == "bacteria"] %>% 
-  merge(bin, by = "contig", all.x = TRUE) %>% 
-  merge(tax, by.x = "bin", by.y = "user_genome", all.x = TRUE)
-
-motifs_full <- motifs_full[
-    , mean := n_mod / (n_mod + n_nomod-1)
-  ][
-    , species := sapply(classification, extract_species_from_gtdbtk)
-  ][
-    , name := fcase(
-      is.na(species), contig,
-      !is.na(species), paste0(species, "_", contig)
-    )
-  ][
-    , motif_markdown := paste0(
-        str_sub(motif, 1, mod_position),
-        "**",
-        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
-        str_sub(motif, mod_position+1, mod_position+1),
-        "**",
-        str_sub(motif, mod_position+2, -1)
-    )
-  ][
-    , simple_count := fcase(
-      (n_mod + n_nomod) > 10, "",
-      (n_mod + n_nomod) <= 10, as.character(n_mod + n_nomod - 1)
+load_complex_sample <- function(
+    motifs_direct_path,
+    motifs_indifrect_path,
+    motifs_bin_path,
+    contig_bin_path,
+    bin_info_path
+  ){
+  motifs_direct <-  fread(motifs_direct_path)[, directly := TRUE]
+  motifs_score <- fread(motifs_indifrect_path)
+  motifs_full <- merge(
+    motifs_score, motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
+    , directly := fifelse(is.na(directly), indirect_label, direct_label)
+  ]
+  
+  bin <- fread(contig_bin_path, header = FALSE)
+  bin_info <-  fread(bin_info_path)
+  bin_info[
+    , bin_quality := case_when(
+      Completeness > 90 & Contamination < 5 ~ "HQ",
+      Completeness > 50 & Contamination < 10 ~ "MQ",
+      TRUE ~ "LQ"
     )
   ]
-motifs_full_binned <- motifs_full[!is.na(bin)]
+  colnames(bin) <-  c("contig", "bin")
+  bin[, n_contigs := .N, by = bin]
+  bin_motifs <- fread(motifs_bin_path) 
+  
+  motifs_full <- merge(motifs_full, bin, by = "contig", all.x = TRUE) 
+  
+  
+  motifs_full <- motifs_full[!is.na(bin)]
+  motifs_full <- motifs_full[motif %in% bin_motifs$motif][
+      , mean := n_mod / (n_mod + n_nomod-1)
+    ][
+        , name := contig
+    ][
+      , motif_markdown := paste0(
+          str_sub(motif, 1, mod_position),
+          "**",
+          map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+          str_sub(motif, mod_position+1, mod_position+1),
+          "**",
+          str_sub(motif, mod_position+2, -1)
+      )
+    ][
+      , simple_count := fcase(
+        (n_mod + n_nomod) > 10, "",
+        (n_mod + n_nomod) <= 10, as.character(n_mod + n_nomod - 1)
+      )
+    ]
+  
+  
+  bin_motifs[
+      , mean := n_mod_bin / (n_mod_bin + n_nomod_bin-1)
+    ][
+      , name := bin
+    ][
+      , motif_markdown := paste0(
+          str_sub(motif, 1, mod_position),
+          "**",
+          map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+          str_sub(motif, mod_position+1, mod_position+1),
+          "**",
+          str_sub(motif, mod_position+2, -1)
+      )
+    ]
+  return(
+    list(
+      "bin_info"=bin_info,
+      "bin_motifs"=bin_motifs,
+      "motifs_full"=motifs_full
+    )
+  )
+}
+
+```
+
+```{r}
+sample = "anaerobic_digestor"
+ad <- load_complex_sample(
+  paste0("../data/", sample, "/nanomotif/motifs.tsv"),
+  paste0("../data/", sample, "/nanomotif/motifs-scored.tsv"),
+  paste0("../data/", sample, "/nanomotif/bin-motifs.tsv"),
+  paste0("../data/", sample, "/mmlong2_lite/tmp/binning/contig_bin.tsv"),
+  paste0("../data/", sample, "/mmlong2_lite/results/mmlong2_lite_bins.tsv")
+)
+sample_stats <- data.table(
+  n_bin = nrow(ad[["bin_info"]]),
+  n_hq = nrow(ad[["bin_info"]][bin_quality == "HQ"]),
+  n_mq = nrow(ad[["bin_info"]][bin_quality == "MQ"]),
+  n_bin_with_one_direct = length(unique(ad[["motifs_full"]][directly == "Direct"]$bin)),
+  n_bin_with_motif = length(unique(ad[["bin_motifs"]]$bin)),
+  n_motif = nrow(ad[["bin_motifs"]][mean > 0.5]),
+  sample = "anaerobic_digestor"
+)
+sample_stats
+```
 
 
-bin_motifs <- fread(paste0("../data/", sample, "/nanomotif/bin-motifs.tsv")) %>% 
-  merge(tax, by.x = "bin", by.y = "user_genome", all.x = TRUE)
-bin_motifs[
-    , mean := n_mod_bin / (n_mod_bin + n_nomod_bin-1)
-  ][
-    , species := sapply(classification, extract_species_from_gtdbtk)
-  ][
-    , name := fcase(
-      is.na(species), bin,
-      !is.na(species), paste0(species, "_", bin)
-    )
-  ][
-    , motif_markdown := paste0(
-        str_sub(motif, 1, mod_position),
-        "**",
-        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
-        str_sub(motif, mod_position+1, mod_position+1),
-        "**",
-        str_sub(motif, mod_position+2, -1)
-    )
-  ]
+```{r}
+sample = "fecal"
+fecal_complex <- load_complex_sample(
+  paste0("../data/", sample, "/nanomotif/motifs.tsv"),
+  paste0("../data/", sample, "/nanomotif/motifs-scored.tsv"),
+  paste0("../data/", sample, "/nanomotif/bin-motifs.tsv"),
+  paste0("../data/", sample, "/mmlong2_lite/tmp/binning/contig_bin.tsv"),
+  paste0("../data/", sample, "/mmlong2_lite/results/mmlong2_lite_bins.tsv")
+)
+sample_stats <- rbind(sample_stats, data.table(
+  n_bin = nrow(fecal_complex[["bin_info"]]),
+  n_hq = nrow(fecal_complex[["bin_info"]][bin_quality == "HQ"]),
+  n_mq = nrow(fecal_complex[["bin_info"]][bin_quality == "MQ"]),
+  n_bin_with_one_direct = length(unique(fecal_complex[["motifs_full"]][directly == "Direct"]$bin)),
+  n_bin_with_motif = length(unique(fecal_complex[["bin_motifs"]]$bin)),
+  n_motif = nrow(fecal_complex[["bin_motifs"]][mean > 0.5]),
+  sample = "fecal_complex"
+))
+sample_stats
+```
+
+```{r}
+simple_fecal <- load_complex_sample(
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/motifs.tsv",
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/motifs-scored.tsv",
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/bin-motifs.tsv",
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/bins.tsv",
+  "../data/PaPr00000216MP/NP-PaPr00000216MP_bins_quality.tsv"
+)
+sample_stats <- rbind(sample_stats, data.table(
+  n_bin = nrow(simple_fecal[["bin_info"]]),
+  n_hq = nrow(simple_fecal[["bin_info"]][bin_quality == "HQ"]),
+  n_mq = nrow(simple_fecal[["bin_info"]][bin_quality == "MQ"]),
+  n_bin_with_one_direct = length(unique(simple_fecal[["motifs_full"]][directly == "Direct"]$bin)),
+  n_bin_with_motif = length(unique(simple_fecal[["bin_motifs"]]$bin)),
+  n_motif = nrow(simple_fecal[["bin_motifs"]][mean > 0.5]),
+  sample = "fecal_simple"
+))
+sample_stats
 ```
 
 
@@ -118,8 +190,18 @@ get_axis_order <- function(wide_df) {
 ```
 
 ```{r}
-y_order <- unique(motifs_full[order(bin, mean)]$name)
-plot_data <- motifs_full[!is.na(n_contigs)]
+n_hq <- nrow(simple_fecal[["bin_info"]][bin_quality == "HQ"])
+n_mq <- nrow(simple_fecal[["bin_info"]][bin_quality == "MQ"])
+n_motif <- nrow(simple_fecal[["bin_motifs"]][mean > 0.5])
+motif_pr_bin <- n_motif / (n_hq + n_mq)
+```
+
+
+```{r}
+plot_data <- motifs_full[bin %in% low_contamination_mags & motif %in% low_contamination_motifs][!is.na(n_contigs)]
+plot_data[
+  , bin := str_extract(bin, "bin.*")
+]
 axis_orders <- get_axis_order(dcast(plot_data, name ~ motif_markdown, value.var = "mean", fill = 0, fun.aggregate = mean))
 bin_contigs_heatmap <- ggplot(plot_data) +
   aes(x = factor(motif_markdown, levels = axis_orders[["x"]]), y = factor(name, levels =  axis_orders[["y"]])) +
@@ -129,12 +211,12 @@ bin_contigs_heatmap <- ggplot(plot_data) +
     title = "Method of detection",
     override.aes = list(alpha = 1))
   ) +
-  new_scale("fill") +
   
+  new_scale("fill") +
   geom_tile(aes(fill = mean),  color = "#ffffff00",linewidth = 0) +
   scale_fill_gradient2(guide = "none", limits = c(0, 1), low = "white", high = direct_color, na.value = "white") +
-  new_scale("fill") +
   
+  new_scale("fill") +
   geom_tile(data=plot_data[directly == indirect_label], aes(fill = mean),  color = "#ffffff00",linewidth = 0) + 
   scale_fill_gradient2(guide = "none", limits = c(0, 1), low = "white", high = indirect_color, na.value = "white") +
   labs(fill = "Directly") +  
@@ -146,6 +228,7 @@ bin_contigs_heatmap <- ggplot(plot_data) +
     limits = c(0, 1), low = "white", high = "gray20",
     labels = scales::percent
   ) +
+  
   theme(
     axis.text.y = element_blank(),# element_markdown(vjust = 0.5, hjust = 0, size = 0.5),
     axis.ticks.y = element_blank(),
@@ -165,16 +248,13 @@ bin_contigs_heatmap <- ggplot(plot_data) +
   ) +
   facet_wrap(~bin, scales = "free_y", ncol = 1, strip.position = "left")+
   geom_point(aes(color = "No motif observations"), shape = 16, size = 1, alpha = 0) +
-  #geom_point(data = data.frame(x = NA, y = NA), aes(x = x, y = y, color = "Assigned MTase"), 
-  #           shape = 8, size = 1, alpha=0) +
   scale_color_manual(name = "Indicator", values = c("No motif observations" = "black")) +
   guides(color = guide_legend(override.aes = list(alpha = 1, shape = c(16)))) # Adjust this line as needed
 
-height_hm <- 4.5
-width_hm <- 8
-plot_name <- "fecal_complex_hm"
+height_hm <- 9
+width_hm <- 16
 ggsave(
-  paste0("../figures/", plot_name, ".png"),
+  paste0("../figures/", sample, "_bin_facet_heatmap2.png"),
   bin_contigs_heatmap,
   height = height_hm,
   width = width_hm,
@@ -274,22 +354,33 @@ bin_motifs[
 
 ```{r}
 ggplot(bin_motifs) + 
-  geom_bar(aes(x=mod_type, fill = motif_type)) +
+  geom_bar(aes(x=mod_type, fill = motif_type), color = "gray20") +
   base_plot_theme() +
-  scale_fill_brewer(palette = "Set1")
+  scale_fill_manual(values = c("ambiguous"="#F16A70", "bipartite"="#B1D877","non-palindrome"= "#8CDCDA","palindrome"= "#4D4D4D"))
   
 ```
 
 ```{r}
-ggplot(
-  bin_motifs[, .(
+motifs_summary <-  bin_motifs[mean > 0.5][, .(
     n_motifs = .N
-  ), by = .(bin, mod_type)]
-) + 
-  geom_histogram(aes(x = n_motifs)) + 
+  ), by = .(motif, mod_position, mod_type, motif_type)][
+    , group := factor(case_when(
+      sum(n_motifs) == 1 ~ "1",
+      sum(n_motifs) > 1 & sum(n_motifs) < 5 ~ "2-4",
+      sum(n_motifs) >= 5 & sum(n_motifs) < 10 ~ "5-9",
+      sum(n_motifs) >= 10 ~ "10+"
+    ), levels = c("1", "2-4", "5-9", "10+")), by = .(motif, mod_position, mod_type)
+  ]
+```
+
+
+```{r}
+ggplot(motifs_summary[group != "1"]) + 
+  geom_histogram(aes(x = group, fill = motif_type), stat="count") + 
   base_plot_theme() + 
-  xlim(0, 8) +
-  facet_wrap(~mod_type)
+  facet_wrap(~mod_type) +
+  scale_fill_manual(values = c("ambiguous"="#f1a86a", "non-palindrome"="#a3d15e","bipartite"= "#8cb6dc","palindrome"= "#4D4D4D")) +
+  ylim(0, NA)
 ```
 
 
