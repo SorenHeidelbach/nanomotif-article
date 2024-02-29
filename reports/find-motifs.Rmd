@@ -58,9 +58,10 @@ get_axis_order <- function(wide_df) {
 zymo_motifs <- fread("../data/ZymoHMW/nanomotif/motifs.tsv")[
   , directly := TRUE
 ]
-
-zymo_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
-
+zymo_bin <- fread("../data/ZymoHMW/mmlong2_lite/tmp/binning/contig_bin.tsv", header = FALSE)
+colnames(zymo_bin) <-  c("contig", "bin")
+zymo_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")[linked == TRUE][, linked_mtase := TRUE]
+zymo_linked <- merge(zymo_linked, zymo_bin)
 zymo_motifs_scored <- all_motifs_score[
     sample == "zymo"
   ][
@@ -87,8 +88,7 @@ zymo_motifs[, motif_pos := paste0(contig, motif, mod_type)][
 ]
 
 zymo_euk <- fread("../data/ZymoHMW/mmlong2_lite/tmp/eukfilt/tiara")
-zymo_bin <- fread("../data/ZymoHMW/mmlong2_lite/tmp/binning/contig_bin.tsv", header = FALSE)
-colnames(zymo_bin) <-  c("contig", "bin")
+
 zymo_tax <- fread("../data/ZymoHMW/gtdb-tk_mmlong2/gtdbtk.bac120.summary.tsv")
 
 zymo <- merge(zymo_motifs, zymo_euk, by.x = "contig", by.y = "sequence_id", all.x = TRUE)[class_fst_stage == "bacteria"] %>% 
@@ -134,7 +134,7 @@ zymo <- zymo[
     , directly := fifelse(is.na(directly), indirect_label, direct_label)
   ]
 
-
+zymo_binmotifs <- fread("../data/ZymoHMW/nanomotif/bin-motifs.tsv")
 ```
 
 
@@ -235,8 +235,10 @@ monoculture <- rbind(
 
 
 ```{r}
-monoculture <- monoculture[!is.na(name)][motif_type != "ambiguous"][, max_mean := max(mean, na.rm = TRUE), by = motif][
+monoculture <- monoculture[!is.na(name)][, max_mean := max(mean, na.rm = TRUE), by = motif][
   max_mean > 0.5
+][, max_nmod := max(n_mod), by = motif][
+  max_nmod > 80
 ]
 axis_orders <- get_axis_order(dcast(monoculture, name ~ motif_markdown, value.var = "mean", fill = 0, fun.aggregate = mean))
 ```
@@ -280,7 +282,7 @@ mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
     labels = scales::percent, n.breaks = 6
   ) +
   geom_text(data=plot_data[(n_mod + n_nomod - 1)==0], label = ".", hjust=0.5, vjust=0, size=7) +
-  geom_text(data=plot_data[linked_mtase == TRUE], label = "★", hjust=0.5, vjust=0.5, size=6, color = "orange") +
+  geom_text(data=plot_data[linked_mtase == TRUE], label = "★", hjust=0.5, vjust=0.5, size=3, color = "orange") +
   coord_fixed(ratio= 1, clip="off") +
   theme(
     axis.text.y = element_markdown(vjust = 0.5, hjust = 0,size=12), # Rotate x-axis labels to 90 degrees
@@ -296,7 +298,7 @@ mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
   geom_text(aes(color = "No motif observations"), alpha = 0, label ="") +
   geom_text(aes(color = "Assigned MTase"), alpha=0, label = "") +
   scale_color_manual(name = "Indicator", values = c("No motif observations" = "black", "Assigned MTase" = "orange")) +
-  guides(color = guide_legend(override.aes = list(alpha = 1, label = c("★", "●"), size = c(6, 2),  fill = c("orange", "black")))) # Adjust this line as needed
+  guides(color = guide_legend(override.aes = list(alpha = 1, label = c("★", "●"), size = c(3, 2),  fill = c("orange", "black")))) # Adjust this line as needed
 
 mono_and_zymo_heatmap
 ```
@@ -407,10 +409,10 @@ motif_full <- motif_full[
 ]
 
 
-bin_motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/bin-motifs.tsv")
-bin_motifs[
+bin_motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/bin-motifs.tsv")
+bin_motifs <-  bin_motifs[
   , mean := n_mod_bin / (n_mod_bin + n_nomod_bin)
-][
+][mean > 0.5][
   , name := bin
 ][
   , motif_markdown := paste0(

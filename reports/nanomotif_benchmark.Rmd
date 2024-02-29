@@ -186,12 +186,14 @@ load_microbemod <- function(path) {
   ][
     , mod_position := Methylated_position_1 - 1
   ][
+    , mod_position_2 := Methylated_position_2 - 1
+  ][
     , mod_type := unlist(lapply(Methylation_type, function(x) MOD_TYPE_SINGLE[x]))
   ][
     , motif_length := unlist(lapply(Motif, str_length))
   ][
     , complement_position := motif_length - Methylated_position_2
-  ][, c("Motif", "mod_position", "complement_motif", "complement_position", "mod_type")][!is.na(complement_motif)]
+  ][, c("Motif", "mod_position", "mod_position_2", "complement_motif", "complement_position", "mod_type")][!is.na(complement_motif)]
   return(microbemod)
 }
 load_nanomotif <- function(path) {
@@ -205,6 +207,7 @@ check_motif_identified_microbemod <- function(path, motif, position, modificatio
   microbemod_output <- load_microbemod(path)
   microbemod_motif_match <- microbemod_output[
       (Motif == motif & mod_position == position & mod_type == modification_type) | 
+      (Motif == motif & mod_position_2 == position & mod_type == modification_type) |
       (complement_motif == motif & complement_position == position & mod_type == modification_type)
     ]
   return(nrow(microbemod_motif_match) > 0 )
@@ -216,6 +219,7 @@ check_motif_identified_nanomotif <- function(path, motif_query, position, modifi
   microbemod_motif_match <- microbemod_output[
       (motif == motif_query & mod_position == position & mod_type == modification_type) | 
       (motif_complement == motif_query & mod_position_complement == position & mod_type == modification_type)
+        
     ]
   return(nrow(microbemod_motif_match) > 0 )
 }
@@ -224,7 +228,7 @@ parse_benchmark_paths_to_datatable <- function(root_path, extension) {
   ### Identifies files in benchmark folder and returns the benchmark variables matching the regex pattern
   files <- list.files(path = root_path,pattern = extension,  full.names = TRUE, recursive = TRUE, include.dirs = TRUE)
   #.../{sample}-contig{contig}-nmotif{nmotif}-motif{motif}-type{mod_type}-pos{pos}-cov{coverage}/chunk_{chunk}
-  pattern <- ".*/(.+)-contig(.+)-nmotif(\\d+)-motif(.+)-type(\\w+)-pos(\\d+)-cov(\\d+)/chunk_(\\d+)"
+  pattern <- ".*/(.+)-contig(.+)-nmotif(.+)-motif(.+)-type(\\w+)-pos(\\d+)-cov(\\d+)/chunk_(\\d+)"
   
   # Initialize an empty data.table
   dt <- data.table(sample = character(), contig = character(), nmotif = integer(), 
@@ -238,7 +242,7 @@ parse_benchmark_paths_to_datatable <- function(root_path, extension) {
         dt, 
         data.table(
           sample = matches[[1]][2], contig = matches[[1]][3], 
-          nmotif = as.integer(matches[[1]][4]), motif = matches[[1]][5], 
+          nmotif = matches[[1]][4], motif = matches[[1]][5], 
           mod_type = matches[[1]][6], pos = as.integer(matches[[1]][7]), 
           coverage = as.integer(matches[[1]][8]), chunk = as.integer(matches[[1]][9]),
           path = file
@@ -252,7 +256,7 @@ parse_benchmark_paths_to_datatable_no_chunk <- function(root_path, extension) {
   ### Identifies files in benchmark folder and returns the benchmark variables matching the regex pattern
   files <- list.files(path = root_path,pattern = extension,  full.names = TRUE, recursive = TRUE, include.dirs = TRUE)
   #.../{sample}-contig{contig}-nmotif{nmotif}-motif{motif}-type{mod_type}-pos{pos}-cov{coverage}/chunk_{chunk}
-  pattern <- ".*/(.+)-contig(.+)-nmotif(\\d+)-motif(.+)-type(\\w+)-pos(\\d+)-cov(\\d+)"
+  pattern <- ".*/(.+)-contig(.+)-nmotif(.+)-motif(.+)-type(\\w+)-pos(\\d+)-cov(\\d+)"
   
   # Initialize an empty data.table
   dt <- data.table(sample = character(), contig = character(), nmotif = integer(), 
@@ -278,6 +282,15 @@ parse_benchmark_paths_to_datatable_no_chunk <- function(root_path, extension) {
 }
 ```
 
+```{r}
+full_count_bipartite_label <- fread("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/microbemod_benchmark/nanomotif_wf/M.ruber_1-contigcontig_1-nmotiffull-motifGGCA......TGG-typea-pos3-cov20/motifs.tsv")[motif == "GGCANNNNNNTGG"][, n := n_mod + n_nomod]$n
+full_count_bipartite_label <- paste0(full_count_bipartite_label)
+full_count_palindrome_label <- fread("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/microbemod_benchmark/nanomotif_wf/E.coli_K12_stat_3-contigcontig_3-nmotiffull-motifGATC-typea-pos1-cov20/motifs.tsv")[motif == "GATC"][, n := n_mod + n_nomod]$n
+full_count_palindrome_label <- paste0(full_count_palindrome_label)
+full_count_complex_label <- fread("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/microbemod_benchmark/nanomotif/Geobacillus_3-contigcontig_1-nmotiffull-motifG[AG].GAAG[CT]-typea-pos5-cov100/chunk_0/motifs.tsv")[motif == "GRNGAAGY"][, n := sum(n_mod) + sum(n_nomod)]$n[1]
+full_count_complex_label <- paste0(full_count_complex_label)
+full_count_generic_label = "All"
+```
 
 
 ```{r}
@@ -305,9 +318,15 @@ mm_result <- merge(
   ][
     , coverage_factor := factor(coverage, levels = unique(sort(coverage)))
   ][
-    , n_motif_factor := factor(nmotif, levels = unique(sort(nmotif, decreasing = TRUE)))
+    , n_motif_factor := factor(nmotif, levels = c("All", full_count_bipartite_label, full_count_palindrome_label, full_count_complex_label, unique(sort(as.integer(nmotif), decreasing = TRUE))))
   ][
     , motif := unlist(lapply(motif, regex_to_iupac))
+  ][
+    , total_motif_count := fcase(
+      motif == "GATC", full_count_palindrome_label,
+      motif == "GGCANNNNNNTGG", full_count_bipartite_label,
+      motif == "GRNGAAGY", full_count_complex_label
+    )
   ][
     , motif_markdown := paste0(
         str_sub(motif, 1, pos),
@@ -319,25 +338,30 @@ mm_result <- merge(
         "</strong>",
         str_sub(motif, pos+2, -1)
     )
+  ][
+    , n_motif_factor := fcase(
+      nmotif == "full", factor("All", levels = levels(n_motif_factor)),
+      nmotif != "full" , n_motif_factor
+    )
   ]
 
 hm_mm <- ggplot(mm_result) + 
   aes(x =n_motif_factor, y = coverage_factor) + 
   geom_tile(aes(fill = recall), color = "black") + 
   scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
-  facet_wrap(~motif_markdown, ncol = 3) + 
+  facet_wrap(~motif_markdown, ncol = 3, scales = "free_x") + 
   geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%"))) +
   theme_minimal() +
   theme(
     strip.text = element_markdown()
   ) +
-  coord_fixed(ratio= 1, clip="off") +
+  #coord_fixed(ratio= 1, clip="off") +
   labs(
     x = "Number of motif occourances",
     y = "Read coverage"
   )
 
-ggsave("../figures/microbemod_benchmark_heatmap.png", hm_mm, bg = "white", width = 10, height = 5)
+ggsave("../figures/microbemod_benchmark_heatmap.png", hm_mm, bg = "white", width = 12, height = 4)
 hm_mm
 ```
 
@@ -362,27 +386,38 @@ nm_mm_count <- mm_mapping[
 nm_mm_result <- merge(
   nm_mm_summary, nm_mm_count, all = TRUE
 )[
-  , n_identified := fifelse(is.na(n_identified), 0, n_identified) 
-][
-  , recall := n_identified / n
-][
-  , coverage_factor := factor(coverage, levels = unique(sort(coverage)))
-][
-  , n_motif_factor := factor(nmotif, levels = unique(sort(nmotif, decreasing = TRUE)))
-][
-  , motif := unlist(lapply(motif, regex_to_iupac))
-][
-  , motif_markdown := paste0(
-      str_sub(motif, 1, pos),
-      "<strong>",
-      str_sub(motif, pos+1, pos+1),
-      "<sub><sup>",
-      map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
-      "</sup></sub>",
-      "</strong>",
-      str_sub(motif, pos+2, -1)
-  )
-]
+    , n_identified := fifelse(is.na(n_identified), 0, n_identified) 
+  ][
+    , recall := n_identified / n
+  ][
+    , coverage_factor := factor(coverage, levels = unique(sort(coverage)))
+  ][
+    , n_motif_factor := factor(nmotif, levels = c("All", full_count_bipartite_label, full_count_palindrome_label, full_count_complex_label, unique(sort(as.integer(nmotif), decreasing = TRUE))))
+  ][
+    , motif := unlist(lapply(motif, regex_to_iupac))
+  ][
+    , total_motif_count := fcase(
+      motif == "GATC", full_count_palindrome_label,
+      motif == "GGCANNNNNNTGG", full_count_bipartite_label,
+      motif == "GRNGAAGY", full_count_complex_label
+    )
+  ][
+    , motif_markdown := paste0(
+        str_sub(motif, 1, pos),
+        "<strong>",
+        str_sub(motif, pos+1, pos+1),
+        "<sub><sup>",
+        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+        "</sup></sub>",
+        "</strong>",
+        str_sub(motif, pos+2, -1)
+    )
+  ][
+    , n_motif_factor := fcase(
+      nmotif == "full", factor("All", levels = levels(n_motif_factor)),
+      nmotif != "full" , n_motif_factor
+    )
+  ]
 
 hm_nm_mm <- ggplot(nm_mm_result) + 
   aes(x =n_motif_factor, y = coverage_factor) + 
@@ -405,14 +440,14 @@ hm_nm_mm
 
 ```{r}
 combined_benchmark <- rbind(
-mm_result[, c("motif", "motif_markdown", "recall", "coverage_factor", "n_motif_factor")][, tool := "MicrobeMod"],
-nm_mm_result[, c("motif","motif_markdown", "recall", "coverage_factor", "n_motif_factor")][, tool := "Nanomotif"]
+mm_result[, c("motif", "motif_markdown", "recall", "coverage_factor", "n_motif_factor", "total_motif_count")][, tool := "MicrobeMod"],
+nm_mm_result[, c("motif","motif_markdown", "recall", "coverage_factor", "n_motif_factor", "total_motif_count")][, tool := "Nanomotif"]
 )
 combined_benchmark[
   , motif_markdown := case_when(
-    motif == "GATC" ~ paste0("*E. coli* K12<br>",  motif_markdown, "<br> Palindromic"),
-    motif == "GRNGAAGY" ~ paste0("*P. thermoglucosidasius*<br>", motif_markdown, "<br> Short Non-Palindromic"),
-    motif == "GGCANNNNNNTGG" ~ paste0("*M. ruber*<br>", motif_markdown, "<br> Bipartite")
+    motif == "GATC" ~ paste0("*E. coli* K12<br>",  motif_markdown, "<br> Palindromic<br>n=", total_motif_count),
+    motif == "GRNGAAGY" ~ paste0("*P. thermoglucosidasius*<br>", motif_markdown, "<br>Short Non-Palindromic<br>n=", total_motif_count),
+    motif == "GGCANNNNNNTGG" ~ paste0("*M. ruber*<br>", motif_markdown, "<br> Bipartite<br>n=", total_motif_count)
     
   )
 ][
@@ -422,20 +457,21 @@ hm_combined <- ggplot(combined_benchmark) +
   aes(x =n_motif_factor, y = coverage_factor) + 
   geom_tile(aes(fill = recall), color = "black") + 
   scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
-  facet_grid(tool ~motif_markdown)+
+  facet_grid(tool ~motif_markdown, scale = "free_x")+
   geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%"))) +
   theme_minimal() +
   theme(
     strip.text.x = element_markdown(),
     strip.text.y.right = element_markdown(face = "bold", size = 20)
   ) +
-  coord_fixed(ratio= 1, clip="off") +
+  #coord_fixed(ratio= 1, clip="off") +
   labs(
     x = "Number of motif occourances",
     y = "Read coverage",
     fill = "Motif\nRecall"
   )
 ggsave("../figures/benchmark_heatmap_both.png", hm_combined, bg = "white", width = 10, height = 6)
+hm_combined
 ```
 
 

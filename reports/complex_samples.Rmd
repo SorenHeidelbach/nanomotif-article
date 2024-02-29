@@ -118,13 +118,15 @@ ad <- load_complex_sample(
   paste0("../data/", sample, "/mmlong2_lite/tmp/binning/contig_bin.tsv"),
   paste0("../data/", sample, "/mmlong2_lite/results/mmlong2_lite_bins.tsv")
 )
+ad_hq_bin = ad[["bin_info"]][bin_quality == "HQ"]$bin
 sample_stats <- data.table(
   n_bin = nrow(ad[["bin_info"]]),
   n_hq = nrow(ad[["bin_info"]][bin_quality == "HQ"]),
   n_mq = nrow(ad[["bin_info"]][bin_quality == "MQ"]),
-  n_bin_with_one_direct = length(unique(ad[["motifs_full"]][directly == "Direct"]$bin)),
   n_bin_with_motif = length(unique(ad[["bin_motifs"]]$bin)),
+  n_hq_with_motif = sum(unique(ad[["bin_motifs"]]$bin) %in% ad_hq_bin),
   n_motif = nrow(ad[["bin_motifs"]][mean > 0.5]),
+  n_motif_hq = nrow(ad[["bin_motifs"]][bin %in% ad_hq_bin][mean > 0.5]),
   sample = "anaerobic_digestor"
 )
 sample_stats
@@ -140,13 +142,15 @@ fecal_complex <- load_complex_sample(
   paste0("../data/", sample, "/mmlong2_lite/tmp/binning/contig_bin.tsv"),
   paste0("../data/", sample, "/mmlong2_lite/results/mmlong2_lite_bins.tsv")
 )
+fecal_hq <- fecal_complex[["bin_info"]][bin_quality == "HQ"]$bin
 sample_stats <- rbind(sample_stats, data.table(
   n_bin = nrow(fecal_complex[["bin_info"]]),
   n_hq = nrow(fecal_complex[["bin_info"]][bin_quality == "HQ"]),
   n_mq = nrow(fecal_complex[["bin_info"]][bin_quality == "MQ"]),
-  n_bin_with_one_direct = length(unique(fecal_complex[["motifs_full"]][directly == "Direct"]$bin)),
   n_bin_with_motif = length(unique(fecal_complex[["bin_motifs"]]$bin)),
+  n_hq_with_motif = sum(unique(fecal_complex[["bin_motifs"]]$bin) %in% fecal_hq),
   n_motif = nrow(fecal_complex[["bin_motifs"]][mean > 0.5]),
+  n_motif_hq = nrow(fecal_complex[["bin_motifs"]][bin %in% fecal_hq][mean > 0.5]),
   sample = "fecal_complex"
 ))
 sample_stats
@@ -154,21 +158,23 @@ sample_stats
 
 ```{r}
 simple_fecal <- load_complex_sample(
-  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/motifs.tsv",
-  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/motifs-scored.tsv",
-  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/nanomotif/bin-motifs.tsv",
-  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.18/bins.tsv",
-  "../data/PaPr00000216MP/NP-PaPr00000216MP_bins_quality.tsv"
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs.tsv",
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs-scored.tsv",
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/bin-motifs.tsv",
+  "/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/bins.tsv",
+  "../data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv"
 )
-sample_stats <- rbind(sample_stats, data.table(
+fecal_simple_hq <- simple_fecal[["bin_info"]][bin_quality == "HQ"]$bin
+sample_stats <-data.table(
   n_bin = nrow(simple_fecal[["bin_info"]]),
   n_hq = nrow(simple_fecal[["bin_info"]][bin_quality == "HQ"]),
   n_mq = nrow(simple_fecal[["bin_info"]][bin_quality == "MQ"]),
-  n_bin_with_one_direct = length(unique(simple_fecal[["motifs_full"]][directly == "Direct"]$bin)),
   n_bin_with_motif = length(unique(simple_fecal[["bin_motifs"]]$bin)),
+  n_hq_with_motif = sum(unique(simple_fecal[["bin_motifs"]]$bin) %in% fecal_simple_hq),
   n_motif = nrow(simple_fecal[["bin_motifs"]][mean > 0.5]),
-  sample = "fecal_simple"
-))
+  n_motif_hq = nrow(simple_fecal[["bin_motifs"]][bin %in% fecal_simple_hq][mean > 0.5]),
+  sample = "simple_fecal"
+)
 sample_stats
 ```
 
