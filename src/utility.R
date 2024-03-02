@@ -138,7 +138,6 @@ extraxt_gtdb_tax <- function(tax_strings) {
 }
 
 
-
 ######################## BINNARY #################################
 add_qc_to_bin_contamination <- function(contamination, qc, contig_length, sample_name="mmlong2_lite.") {
   df <- qc %>% 
