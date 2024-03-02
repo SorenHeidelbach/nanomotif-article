@@ -1,0 +1,38 @@
+---
+title: "sample_stats"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+
+```{r}
+pacman::p_load(
+  "data.table",
+  "ggplot2",
+  "stringr",
+  "tidyr",
+  "dplyr",
+  "ggtext",
+  "pheatmap",
+  "purrr",
+  "here",
+  "ggnewscale",
+  "Biostrings"
+)
+getwd()
+source("../src/constants.R")
+source("../src/themes.R")
+source("../src/utility.R")
+```
+
+
+```{r}
+
+
+
+```
+

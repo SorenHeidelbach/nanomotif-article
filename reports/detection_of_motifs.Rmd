@@ -1,0 +1,146 @@
+---
+title: "sample_stats"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+
+```{r}
+pacman::p_load(
+  "data.table",
+  "ggplot2",
+  "stringr",
+  "tidyr",
+  "dplyr",
+  "ggtext",
+  "pheatmap",
+  "purrr",
+  "here",
+  "ggnewscale",
+  "Biostrings",
+  "patchwork"
+)
+getwd()
+source("../src/constants.R")
+source("../src/themes.R")
+source("../src/utility.R")
+```
+
+
+
+```{r}
+
+load_bin_info <- function(path){
+  bin_info <- fread(path)[
+    , quality := fcase(
+      Completeness > 90 & Contamination < 5, "HQ",
+      Completeness > 50 & Contamination < 10, "MQ",
+      Completeness >= 0, "LQ"
+    )
+  ]
+  return(bin_info)
+}
+load_bin_motif <- function(path){
+  bin_motifs <- fread(path)
+  return(bin_motifs)
+}
+add_bin_motif_count <- function(bin_info, bin_motifs){
+  bin_motifs_summary <- bin_motifs[
+    , .(
+      n_motifs = .N,
+      n_6ma = sum(mod_type == "a"),
+      n_5mc = sum(mod_type == "m")
+    ), by = bin
+  ]
+  bin_info <- merge(bin_info, bin_motifs_summary, all.x = TRUE, by = "bin")
+  bin_info[
+    , has_motif := fifelse(is.na(n_motifs), FALSE, TRUE)
+  ][
+    , n_motifs := fifelse(is.na(n_motifs), 0, n_motifs)
+  ]
+  return(bin_info)
+}
+fecal <- add_bin_motif_count(
+  load_bin_info("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/mmlong2_lite/results/mmlong2_lite_bins.tsv"),
+  load_bin_motif("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/nanomotif/mmlong2/bin-motifs.tsv")
+)
+ad <- add_bin_motif_count(
+  load_bin_info("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/AD/mmlong2_lite/results/mmlong2_lite_bins.tsv"),
+  load_bin_motif("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/AD/nanomotif/mmlong2/bin-motifs.tsv")
+)
+simple_fecal <- add_bin_motif_count(
+  load_bin_info("data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv"),
+  load_bin_motif("data/PaPr00000216MP_nm_0.1.19/nanomotif/bin-motifs.tsv")
+)
+colnames(simple_fecal) <-  colnames(ad)
+
+```
+
+
+
+```{r}
+plot_bin_motif_presence <- function(bin_info) {
+  bin_info_summary <- bin_info[, cov_gt_10 := cov > 10][
+        , .(n_motif = sum(has_motif), n = .N), by = .(sample, quality, cov_gt_10)
+      ][
+        , frac_with_motif := n_motif/n
+      ]
+  ggplot(bin_info) + 
+    aes(x = cov/2, y = Contig_N50, color = has_motif) +
+    geom_point(alpha = 0.7, size = 1) +
+    scale_x_log10(limits = c(1, NA)) +
+    scale_y_log10(limits = c(NA, NA)) +
+    annotate("text", label = "Minimum coverage in Nanomotif", y = 1e4, x = 5.5, hjust = 0, size = 3, color = "gray70") +
+    geom_text(
+      data = bin_info_summary[cov_gt_10 == FALSE],
+      inherit.aes = FALSE,
+      aes(label = paste0(round(frac_with_motif*100,   digits = 0), "%")), x = log10(4), y = 6.8, hjust = 1, size = 3
+    ) + 
+    geom_text(
+      data = bin_info_summary[cov_gt_10 == TRUE],
+      inherit.aes = FALSE,
+      aes(label = paste0(round(frac_with_motif*100,   digits = 0), "%")), x = log10(6), y = 6.8, hjust = 0, size = 3
+    ) + 
+    facet_grid(sample~quality) +
+    theme_bw() +
+    theme(
+      legend.position = "bottom"
+    ) +
+    scale_color_manual(values = c("TRUE"="black", "FALSE"="firebrick2")) +
+    labs(
+      x = "Average bin strand coverage",
+      y = "N50 of bin contigs",
+      size = "#motifs",
+      color = "Has motif"
+    ) +
+    geom_vline(xintercept = 5, linetype = 2, color = "grey70")
+}
+```
+, breaks = c(1, 5, 10, 100, 1000), labels = c("1", "\nMin. cov\nNanomotif", "10", "100", "1000")
+```{r}
+collected_bin_info <- rbind(
+  fecal[, sample:="Complex Fecal"],
+  ad[, sample := "Anaerobic Digester"],
+  simple_fecal[, sample := "Simple Fecal"]
+)
+collected_bin_info[
+  , sample := factor(sample, levels = c("Simple Fecal", "Complex Fecal", "Anaerobic Digester"))
+]
+complex_sample_plot <- plot_bin_motif_presence(collected_bin_info)
+complex_sample_plot
+```
+
+```{r}
+save(complex_sample_plot, file = "../figures/sup_bin_motif_presence.Rdata")
+ggsave(
+  "figures/sup_bin_motif_presence.png",
+  complex_sample_plot,
+  height = 10,
+  width = 9
+)
+```
+

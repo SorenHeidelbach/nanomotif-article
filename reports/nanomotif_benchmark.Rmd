@@ -174,7 +174,7 @@ ggsave("../figures/select_benchmark_heatmap.png", hm, bg = "white", width = 10, 
 ```
 
 
-# Microbemod
+# Microbemod only
 
 
 ```{r}
@@ -445,9 +445,9 @@ nm_mm_result[, c("motif","motif_markdown", "recall", "coverage_factor", "n_motif
 )
 combined_benchmark[
   , motif_markdown := case_when(
-    motif == "GATC" ~ paste0("*E. coli* K12<br>",  motif_markdown, "<br> Palindromic<br>n=", total_motif_count),
-    motif == "GRNGAAGY" ~ paste0("*P. thermoglucosidasius*<br>", motif_markdown, "<br>Short Non-Palindromic<br>n=", total_motif_count),
-    motif == "GGCANNNNNNTGG" ~ paste0("*M. ruber*<br>", motif_markdown, "<br> Bipartite<br>n=", total_motif_count)
+    motif == "GATC" ~ paste0("*E. coli* K12<br>",  motif_markdown, "<br> Palindromic<br>All=", total_motif_count),
+    motif == "GRNGAAGY" ~ paste0("*P. thermoglucosidasius*<br>", motif_markdown, "<br>Short Non-Palindromic<br>All=", total_motif_count),
+    motif == "GGCANNNNNNTGG" ~ paste0("*M. ruber*<br>", motif_markdown, "<br> Bipartite<br>All=", total_motif_count)
     
   )
 ][
@@ -458,7 +458,7 @@ hm_combined <- ggplot(combined_benchmark) +
   geom_tile(aes(fill = recall), color = "black") + 
   scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
   facet_grid(tool ~motif_markdown, scale = "free_x")+
-  geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%"))) +
+  geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%")), size=3) +
   theme_minimal() +
   theme(
     strip.text.x = element_markdown(),
@@ -471,6 +471,7 @@ hm_combined <- ggplot(combined_benchmark) +
     fill = "Motif\nRecall"
   )
 ggsave("../figures/benchmark_heatmap_both.png", hm_combined, bg = "white", width = 10, height = 6)
+save(hm_combined, file = "../figures/benchmark_heatmap_both.Rdata")
 hm_combined
 ```
 
@@ -534,6 +535,7 @@ bin_consensus_benchmark <- ggplot(nm_bin_benchmark) +
   scale_fill_manual(values = c("TRUE" = "#3A481E", "FALSE"="gray80"))
 bin_consensus_benchmark
 ggsave("../figures/benchmark_heatmap_bin_consensus.png", bin_consensus_benchmark, bg = "white", width = 10, height = 3.5)
+save(bin_consensus_benchmark, file = "../figures/benchmark_heatmap_bin_consensus.Rdata")
 ```
 
 ```{r}
