@@ -1,0 +1,45 @@
+---
+title: "methylation_profile_embedding"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+
+```{r}
+pacman::p_load(
+  "data.table",
+  "ggplot2",
+  "stringr",
+  "tidyr",
+  "dplyr",
+  "ggtext",
+  "pheatmap",
+  "purrr",
+  "here",
+  "ggnewscale",
+  "Biostrings",
+  "umap"
+)
+getwd()
+source("../src/constants.R")
+source("../src/themes.R")
+source("../src/utility.R")
+```
+
+
+```{r}
+load_bin_motifs <- function(path){
+  bin_motifs <- fread(path)
+  return(bin_motifs)
+}
+load_motifs_scored <- function(path){
+  motifs_scored <- fread(path)
+  return(motifs_scored)
+}
+
+```
+

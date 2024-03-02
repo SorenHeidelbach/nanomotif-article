@@ -329,7 +329,7 @@ ggsave(
   width = width_hm,
   dpi = "retina",
   bg = "white")
-
+save(mono_and_zymo_heatmap, file = "../figures/zymo_and_mono_heatmap.Rdata")
 ```
 
 # Simple Fecal
