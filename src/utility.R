@@ -137,3 +137,83 @@ extraxt_gtdb_tax <- function(tax_strings) {
   return(result_vectors)
 }
 
+
+######################## BINNARY #################################
+add_qc_to_bin_contamination <- function(contamination, qc, contig_length, sample_name="mmlong2_lite.") {
+  df <- qc %>% 
+    select(bin:Contamination, Total_Contigs) %>% 
+    right_join(contamination) %>% 
+    mutate(
+      mag_quality = case_when(
+        Completeness >= 90 & Contamination <= 5 ~ "HQ",
+        Completeness >= 50 & Contamination <= 10 ~"MQ"
+      ),
+      mag_quality = factor(mag_quality, levels = c("HQ", "MQ"))
+    ) %>% 
+    arrange(mag_quality, Total_Contigs) %>% 
+    mutate(
+      bin = str_remove(bin, sample_name),
+      bin_contig_compare = str_remove(bin_contig_compare, sample_name)
+    ) %>% 
+    left_join(contig_length)
+  
+  n_contamination_found_in_bin <- df %>% 
+    group_by(bin) %>% 
+    summarise(
+      n_contaminants = n()
+    )
+  
+  df <- left_join(df, n_contamination_found_in_bin)
+  return(df)
+} 
+
+filter_comparison_df <- function(comparison, contig_length, sample_name = "mmlong2_lite.")  {
+  df <- comparison %>% 
+    mutate(
+      bin = str_remove(bin, sample_name),
+      bin_contig = str_remove(bin_contig, sample_name),
+      contig_bin = str_remove(contig_bin, sample_name),
+      # Extract motif before the underscore
+      motif = str_extract(motif_mod, "^[^_]+"),
+      # Extract modification type after the underscore and before the dash
+      mod_type = str_extract(motif_mod, "(?<=_)[^-]+"),
+      # Extract modification position after the dash, converting to numeric
+      mod_position = as.numeric(str_extract(motif_mod, "(?<=-)[0-9]+")),
+      motif_axis = paste0(
+        str_sub(motif, 1, mod_position),
+        "<strong>",
+        str_sub(motif, mod_position+1, mod_position+1),
+        "<sub><sup>",
+        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+        "</sup></sub>",
+        "</strong>",
+        str_sub(motif, mod_position+2, -1)
+      )
+    ) %>% 
+    left_join(contig_length)
+  
+  return(df)
+}
+
+prepare_bin_consensus <- function(consensus, sample_name = "mmlong2_lite.") {
+  df <- consensus %>% 
+    mutate(bin = str_remove(bin, sample_name)) %>% 
+    mutate(motif_mod = paste0(motif, "_", mod_type,"-", mod_position))
+  
+  return(df)
+}
+
+calculateGCContent <- function(filePath) {
+  sequences <- read.fasta(file = filePath) # Read the assembly file
+  gcContent <- sapply(sequences, function(seq) {
+    GC(seq) # Use the GC function to calculate GC content directly
+  })
+  
+  # Create a data frame with contig names and their GC content
+  gcDataFrame <- data.frame(
+    contig = names(gcContent),
+    gc = gcContent
+  )
+  
+  return(gcDataFrame) # Return the data frame
+}
