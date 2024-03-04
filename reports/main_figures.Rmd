@@ -1,0 +1,461 @@
+---
+title: "main_figures"
+author: "Jeppe Støtt Bøjer"
+date: "2024-02-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Figure requirements
+
+All figures must be cited in sequence within the main article text in the form Fig. 1, Fig. 2.
+
+Figure panels should be prepared at a minimum resolution of 300 dpi and saved at a maximum width of 180 mm.  
+
+Use a 5–7 pt san serif font for standard text labelling and Symbol font for Greek characters. 
+
+Use scale bars, not magnification factors, and include error bars where appropriate. 
+
+Do not flatten labelling or scale/error bars onto images – uneditable or low-resolution images are two of the most common reasons for delay in manuscript preparation.  
+
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(png)
+library(grid)
+
+load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/benchmark_heatmap_bin_consensus.Rdata")
+load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/benchmark_heatmap_both.Rdata")
+load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/zymo_and_mono_heatmap.Rdata")
+#method <- readPNG("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/reports/nanomotif_article_temp/nanomotif_method.png", native = TRUE)
+
+method <- readPNG("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/nanomotif_method (2).png")
+method_grob <- rasterGrob(method, interpolate = TRUE)
+```
+
+
+```{r}
+pacman::p_load(
+  "data.table",
+  "ggplot2",
+  "stringr",
+  "tidyr",
+  "dplyr",
+  "ggtext",
+  "pheatmap",
+  "purrr",
+  "here",
+  "ggnewscale"
+)
+source("../src/constants.R")
+source("../src/themes.R")
+source("../src/utility.R")
+```
+
+
+
+```{r}
+# Prepare motifs
+all_motifs_score = fread("../data/motifs-scored_zymo_and_mono.tsv")
+direct_label = "Direct"
+indirect_label = "Indirect"
+direct_color = PLOT_COLORS[["dark_blue"]]
+indirect_color = PLOT_COLORS[["dark_green"]]
+get_axis_order <- function(wide_df) {
+  set.seed(1)
+  feature_matrix = as.matrix(wide_df[,-1] )
+  y_row_order <- pheatmap::pheatmap(as.matrix(feature_matrix), silent = TRUE)$tree_row$order
+  y_factor_order <- wide_df$name[y_row_order]
+  x_row_order <- pheatmap::pheatmap(t(as.matrix(feature_matrix)), silent = TRUE)$tree_row$order
+  x_factor_order <- colnames(wide_df[,-1])[x_row_order]
+  return(list(
+    y = y_factor_order,
+    x = x_factor_order
+  ))
+}
+
+
+```
+
+# Zymo + mono
+
+```{r}
+
+zymo_motifs <- fread("../data/ZymoHMW/nanomotif/motifs.tsv")[
+  , directly := TRUE
+]
+zymo_bin <- fread("../data/ZymoHMW/mmlong2_lite/tmp/binning/contig_bin.tsv", header = FALSE)
+colnames(zymo_bin) <-  c("contig", "bin")
+zymo_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")[linked == TRUE][, linked_mtase := TRUE]
+zymo_linked <- merge(zymo_linked, zymo_bin)
+zymo_motifs_scored <- all_motifs_score[
+    sample == "zymo"
+  ][
+    , sample := NULL
+  ]
+
+
+zymo_motifs <- merge(
+  zymo_motifs_scored, 
+  zymo_motifs, 
+  all.x = TRUE, 
+  by=c("contig", "motif", "mod_position", "mod_type"), 
+  suffixes = c("", ".drop")
+)
+zymo_linked[, motif_pos := paste0(contig, motif, mod_type)]
+zymo_motifs[, motif_pos := paste0(contig, motif, mod_type)][
+  , motif_comp_pos := paste0(contig, motif_complement, mod_type)
+  ][
+  , linked_mtase := ifelse(
+    (motif_pos %in% zymo_linked$motif_pos) | (motif_comp_pos %in% zymo_linked$motif_pos),
+    TRUE,
+    FALSE
+  )
+]
+
+zymo_euk <- fread("../data/ZymoHMW/mmlong2_lite/tmp/eukfilt/tiara")
+
+zymo_tax <- fread("../data/ZymoHMW/gtdb-tk_mmlong2/gtdbtk.bac120.summary.tsv")
+
+zymo <- merge(zymo_motifs, zymo_euk, by.x = "contig", by.y = "sequence_id", all.x = TRUE)[class_fst_stage == "bacteria"] %>% 
+  merge(zymo_bin, by = "contig", all.x = TRUE) %>% 
+  merge(zymo_tax, by.x = "bin", by.y = "user_genome", all.x = TRUE)
+
+
+zymo <- zymo[
+    , mean := n_mod / (n_mod + n_nomod)
+  ][
+    , species := sapply(classification, extract_species_from_gtdbtk)
+  ][
+    , name := fcase(
+      is.na(species), contig,
+      !is.na(species), species
+    )
+  ][
+    , name := fcase(
+      contig == "contig_105", "*Escherichia coli* Zymo **plasmid I**",
+      contig == "contig_89", "*Escherichia coli* Zymo **plasmid II**",
+      contig == "contig_66", "*Escherichia coli* Zymo",
+      contig == "contig_104", "*Salmonella enterica* **plasmid I**",
+      contig == "contig_111", "*Staphylococcus aureus* **plasmid I**",
+      contig == "contig_102", "*Staphylococcus aureus* **plasmid II**",
+      contig == "contig_93", "*Staphylococcus aureus* **plasmid II**",
+      contig != "contig", paste0("*", name, "*")
+    )
+  ][
+    , motif_markdown := paste0(
+        str_sub(motif, 1, mod_position),
+        "**",
+        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+        str_sub(motif, mod_position+1, mod_position+1),
+        "**",
+        str_sub(motif, mod_position+2, -1)
+    )
+  ][
+    , simple_count := fcase(
+      (n_mod + n_nomod) > 10, "",
+      (n_mod + n_nomod) <= 10, as.character(n_mod + n_nomod - 1)
+    )
+  ][
+    , directly := fifelse(is.na(directly), indirect_label, direct_label)
+  ]
+
+zymo_binmotifs <- fread("../data/ZymoHMW/nanomotif/bin-motifs.tsv")
+```
+
+
+
+
+```{r}
+# prepare monoculture motifs
+
+gb_motifs_direct <- fread("../data/p_thermoglucosidasius/nanomotif/motifs.tsv")[, directly := TRUE]
+gb_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/Geobacillus_3/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+gb_motifs <- merge(
+  all_motifs_score[sample == "gb"], gb_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
+  , directly := fifelse(is.na(directly), indirect_label, direct_label)
+][
+  , name := str_replace(contig, "contig", "*P. thermoglucosidasius*")
+][
+  , name := str_replace(name, "_1", "")
+][
+  , name := str_replace(name, "_2", " **plasmid I**")
+][
+  , name := str_replace(name, "_3", " **plasmid II**")
+][, sample := NULL]
+
+gb_linked[, motif_pos := paste0(contig, motif, mod_type)]
+gb_motifs[, motif_pos := paste0(contig, motif, mod_type)][
+  , motif_comp_pos := paste0(contig, motif_complement, mod_type)
+  ][
+  , linked_mtase := ifelse(
+    motif_pos %in% gb_linked$motif_pos | motif_comp_pos %in% gb_linked$motif_pos,
+    TRUE,
+    FALSE
+  )
+]
+
+ec_motifs_direct <- fread("../data/e_coli_K12/nanomotif/motifs.tsv")[, directly := TRUE]
+ec_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/E.coli_K12_stat_3/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+ec_motifs <- merge(
+  all_motifs_score[sample == "ec"], ec_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
+  , directly := fifelse(is.na(directly), indirect_label, direct_label)
+][
+  , name := "*Escherichia coli* K12"
+][, sample := NULL]
+ec_linked[, motif_pos := paste0(contig, motif, mod_type)]
+ec_motifs[, motif_pos := paste0(contig, motif, mod_type)][
+  , motif_comp_pos := paste0(contig, motif_complement, mod_type)
+  ][
+  , linked_mtase := ifelse(
+    motif_pos %in% ec_linked$motif_pos | motif_comp_pos %in% ec_linked$motif_pos,
+    TRUE,
+    FALSE
+  )
+]
+
+mr_motifs_direct <- fread("../data/m_ruber/nanomotif/motifs.tsv")[, directly := TRUE]
+mr_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/M.ruber_1/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+mr_motifs <-  merge(
+  all_motifs_score[sample == "mr"], mr_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
+  , directly := fifelse(is.na(directly), indirect_label, direct_label)
+][
+  , name := "*Meiothermus ruber*"
+][, sample := NULL]
+mr_linked[, motif_pos := paste0(contig, motif, mod_type)]
+mr_motifs[, motif_pos := paste0(contig, motif, mod_type)][
+  , motif_comp_pos := paste0(contig, motif_complement, mod_type)
+  ][
+  , linked_mtase := ifelse(
+    motif_pos %in% mr_linked$motif_pos | motif_comp_pos %in% mr_linked$motif_pos,
+    TRUE,
+    FALSE
+  )
+]
+
+
+columns_to_keep <- colnames(gb_motifs)
+monoculture <- rbind(
+  gb_motifs, ec_motifs, mr_motifs, zymo[, ..columns_to_keep]
+)[, mean := n_mod / (n_mod + n_nomod - 1)][
+  , motif_markdown := paste0(
+      str_sub(motif, 1, mod_position),
+      "<strong>",
+      str_sub(motif, mod_position+1, mod_position+1),
+      "<sub><sup>",
+      map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+      "</sup></sub>",
+      "</strong>",
+      str_sub(motif, mod_position+2, -1)
+  )
+][
+  , simple_count := fcase(
+    (n_mod + n_nomod - 1) > 10, "",
+    (n_mod + n_nomod - 1) <= 10, as.character(n_mod+n_nomod-1)
+  )
+]
+
+
+
+```
+
+
+```{r}
+monoculture <- monoculture[!is.na(name)][, max_mean := max(mean, na.rm = TRUE), by = motif][
+  max_mean > 0.5
+][, max_nmod := max(n_mod), by = motif][
+  max_nmod > 80
+]
+axis_orders <- get_axis_order(dcast(monoculture, name ~ motif_markdown, value.var = "mean", fill = 0, fun.aggregate = mean))
+```
+
+```{r}
+custom_yorder <-rev(c("*Staphylococcus aureus*",  "*Staphylococcus aureus* **plasmid I**",          "*Staphylococcus aureus* **plasmid II**",
+"*Meiothermus ruber*",
+"*Escherichia coli* Zymo","*Escherichia coli* Zymo **plasmid I**", "*Escherichia coli* Zymo **plasmid II**", 
+"*Escherichia coli* K12", 
+"*Salmonella enterica*", "*Salmonella enterica* **plasmid I**",
+"*P. thermoglucosidasius*",  "*P. thermoglucosidasius* **plasmid I**" ,"*P. thermoglucosidasius* **plasmid II**",
+"*Pseudomonas aeruginosa*",                    
+"*Enterococcus faecalis*",
+"*Bacillus spizizenii*",                        
+"*Listeria monocytogenes_B*"))
+custom_x_order <- c(axis_orders[["x"]][str_detect(axis_orders[["x"]], "A<sub")], axis_orders[["x"]][str_detect(axis_orders[["x"]], "C<sub")])
+```
+
+
+```{r}
+plot_data = monoculture
+mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
+  aes(x = factor(motif_markdown, levels = custom_x_order), y = factor(name, levels = custom_yorder)) + 
+  geom_tile(aes(fill = directly), linewidth = 0, alpha = 0) + 
+  scale_fill_manual(values = c("Direct"=direct_color, "Indirect"=indirect_color)) +
+  guides(fill = guide_legend(
+    title = "Method of detection",
+    override.aes = list(alpha = 1), direction = "vertical")
+  ) +
+  new_scale("fill") +
+  geom_tile(aes(fill = mean), linewidth = 0) +   
+  scale_fill_steps(guide = "none", limits = c(0, 1), low = "white", high = direct_color, na.value = "white", n.breaks = 6) +
+  new_scale("fill") +
+  geom_tile(data=plot_data[directly == indirect_label & mean > 0.2], aes(fill = mean), linewidth = 0) + 
+  scale_fill_steps(guide = "none", limits = c(0, 1), low = "white", high = indirect_color, na.value = "white", n.breaks = 6) +
+  labs(fill = "Directly") + 
+  new_scale("fill") +
+  geom_tile(data= plot_data, aes(fill = mean), linewidth = 0.1, color = "gray20", alpha = 0) +
+  scale_fill_steps(
+    limits = c(0, 1), low = "white", high = "gray20",
+    labels = scales::percent, n.breaks = 6, guide = guide_legend(title.position = "top", direction = "horizontal", override.aes = list(alpha = 1))) +
+    #guides(fill = guide_legend(title.position = "top", direction = "horizontal", title.hjust = 0.5)) +
+  geom_text(data=plot_data[(n_mod + n_nomod - 1)==0], label = ".", hjust=0.5, vjust=0, size=3) +
+  geom_text(data=plot_data[linked_mtase == TRUE], label = "★", hjust=0.5, vjust=0.5, size=2, color = "orange") +
+  coord_fixed(ratio= 1, clip="off") +
+  theme(
+    axis.text.y = element_markdown(vjust = 0.5, hjust = 0,size=12), # Rotate x-axis labels to 90 degrees
+    axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 12),
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.background = element_blank(),   # Remove panel background,
+    legend.position = "top"
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = NULL,
+    fill = "Methylation degree"
+  ) +
+  geom_text(aes(color = "No motif observations"), alpha = 0, label ="") +
+  geom_text(aes(color = "Assigned MTase"), alpha=0, label = "") +
+  scale_color_manual(name = "Indicator", values = c("No motif observations" = "black", "Assigned MTase" = "orange")) +
+  guides(color = guide_legend(direction = "vertical", override.aes = list(alpha = 1, label = c("★", "●"), size = c(2, 1),  fill = c("orange", "black")))) # Adjust this line as needed
+
+mono_and_zymo_heatmap
+```
+
+
+
+
+```{r}
+main_theme <- theme(
+    text = element_text(family = "sans", size = 0.5),
+    plot.title = element_text(size = 5, family = "sans"),
+    strip.text = element_markdown(size = 5, family = "sans"),
+    strip.text.y.right = element_markdown(face = "bold", size = 6, family = "sans"),
+    axis.text.y = element_markdown(size=5, family = "sans"), # Rotate x-axis labels to 90 degrees
+    axis.text.x = element_markdown(size = 5, family = "sans"),
+    axis.title.x = element_text(size = 7, family = "sans"),
+    axis.title.y = element_text(size = 7, family = "sans"),
+    axis.ticks = element_line(linewidth = 0.1),
+    legend.title = element_text(size = 5, family = "sans"),
+    legend.text = element_text(size = 5, family = "sans"),
+    legend.key.size = unit(0.3, "cm"))
+
+
+
+
+p2 <- bin_consensus_benchmark + main_theme + theme(legend.position = "bottom",
+                                                   legend.margin = margin(b = 3, unit = "pt"))
+p3 <- mono_and_zymo_heatmap + main_theme + theme(legend.key.size = unit(0.2, "cm"),
+                                                 #legend.position = "top",
+                                                 #legend.spacing.x = unit(0.01, "cm"),
+                                                 legend.justification = c(1, 0),
+                                                 legend.box.just = "right",
+                                                 legend.margin = margin(t = -5, unit = "pt")
+)
+
+p4 <- hm_combined + main_theme + theme(legend.position = "right", 
+        legend.margin = margin(t = 0, r = -3, b = 0, l = -7, unit = "pt"))
+p2_grob <- ggplotGrob(p2)
+p3_grob <- ggplotGrob(p3)
+p4_grob <- ggplotGrob(p4)
+```
+
+```{r}
+png("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_1.png", res = 600, height = 14, width = 18, units = "cm")
+
+layout1 <- grid.layout(nrow = 2, ncol = 2,
+                      widths = unit(c(9, 11), "null"),
+                      heights = unit(c(2, 1), "null"))
+
+
+layout2 <- grid.layout(nrow = 2, ncol = 2,
+                      widths = unit(c(9, 11), "null"),
+                      heights = unit(c(18, 11), "null"), just = "top")
+
+layout3 <- grid.layout(nrow = 2, ncol = 2,
+                      widths = unit(c(9, 11), "null"),
+                      heights = unit(c(18, 12), "null"), just = "left")
+
+layout4 <- grid.layout(nrow = 2, ncol = 2,
+                      widths = unit(c(9, 11), "null"),
+                      heights = unit(c(19, 11), "null"))
+
+# Push the layout to the drawing area
+grid.newpage()
+
+pushViewport(viewport(layout = layout2))
+
+# For p3 in the top right area
+pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 2))
+grid.draw(p3_grob)
+grid.text("b", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(3, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+upViewport()  # Go back up to the layout level
+
+pushViewport(viewport(layout = layout1))
+
+# For p1 in the top left area
+pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 1))
+grid.draw(method_grob)
+grid.text("a", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(2.5, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+upViewport()
+
+
+
+pushViewport(viewport(layout = layout4))
+
+# For p2 in the bottom left area
+pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 1))
+grid.draw(p2_grob)
+grid.text("c", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(2, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+upViewport()
+
+pushViewport(viewport(layout = layout3))
+
+# For p4 in the bottom right area
+pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2))
+grid.draw(p4_grob)
+grid.text("d", x = unit(0, "npc") + unit(5, "mm") , y = unit(1, "npc") - unit(6, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+upViewport()
+
+dev.off()
+```
+
+
+
+```{r}
+wrap_plots(mono_count_plot, sfecal_count_plot, 
+           nrow = 2, ncol = 1, widths = c(1, 1))
+```
+
+```{r}
+p1 <- ggplot(mtcars) + geom_point(aes(mpg, disp))
+p2 <- ggplot(mtcars) + geom_boxplot(aes(gear, disp, group = gear))
+p3 <- ggplot(mtcars) + geom_bar(aes(gear)) + facet_wrap(~cyl)
+
+layout <- c(
+  area(1, 1),
+  area(1, 3, 3),
+  area(3, 1, 3, 2)
+)
+
+# Show the layout to make sure it looks as it should
+plot(layout)
+
+# Apply it to a patchwork
+p1 + p2 + p3 + plot_layout(design = layout)
+```
+

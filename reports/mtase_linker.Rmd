@@ -257,6 +257,9 @@ dev.off()
 ```
 
 
+# Complex samples
+
+
 ```{r}
 fecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/fecal2/mtase_linker/MTase_assignment_table.tsv")
 fecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/fecal2/mtase_linker/nanomotif_assignment_table.tsv")
