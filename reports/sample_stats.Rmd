@@ -21,7 +21,8 @@ pacman::p_load(
   "purrr",
   "here",
   "ggnewscale",
-  "Biostrings"
+  "Biostrings",
+  "rjson"
 )
 getwd()
 source("../src/constants.R")
@@ -31,8 +32,11 @@ source("../src/utility.R")
 
 
 ```{r}
-
-
+load_sequencing_stats <- function(path) {
+  report <- fromJSON(file=path)
+  return(report)
+}
+mfd02199 <- load_sequencing_stats("/home/bio.aau.dk/lx38ll/nanopore-data/raw/2023-07-13-Soil/2023-07-13-Soil/20230713_1216_3B_PAQ87768_b9964641/report_PAQ87768_20230713_1222_b9964641.json")
 
 ```
 
