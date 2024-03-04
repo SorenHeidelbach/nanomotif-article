@@ -100,6 +100,14 @@ binary_comparison_all <- bind_rows(binary_comparison_df_f_a, binary_comparison_d
 
 ```
 
+```{r}
+bin_contamination_all %>% 
+  group_by(sample, mag_quality) %>%
+  summarise(
+    n = n()
+  )
+  
+```
 
 
 ```{r}
