@@ -227,7 +227,7 @@ plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), c("bi
 ```
 
 ```{r}
-motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
+# motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
 
 motifs = c("CCGCGG_m-1", "AGAGC_a-2", "CCGAGC_a-3", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "GACATG_a-3", "GGCGCTRG_m-4","CGGAG_a-3", "CTGCAG_a-4", "GATATC_a-1", "GAGGAG_a-4","GCGATC_a-3", "TTCGAA_a-5")
 
@@ -298,8 +298,13 @@ make_plot <- function(bin2see) {
     geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 7) +
     theme(
       legend.position = "none",
-      axis.text.y = element_markdown(vjust = 0.5, hjust = 0), # Rotate x-axis labels to 90 degrees
-      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5),
+      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
+      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
+      plot.subtitle = element_text(size = 6),
+      plot.title = element_text(size = 7),
+      legend.title = element_text(size = 5),
+      legend.text = element_text(size = 5),
+      legend.key.size = unit(0.3, 'cm'),
       panel.grid.minor = element_blank(),  # Remove minor gridlines
       panel.background = element_blank(),   # Remove panel background,
     ) +
@@ -312,7 +317,7 @@ make_plot <- function(bin2see) {
       subtitle = bin_stats
     ) +
     guides(
-      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"●"), size = c(4)))
+      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"●"), size = c(2)))
     )
   
   return(contamination_plot)
@@ -326,25 +331,27 @@ plots = tibble(
     plt = map(.x = bin, ~make_plot(.x))
   )
 
-plots$plt[[2]] <- plots$plt[[2]] + theme(legend.position = "bottom")
+# plots$plt[[1]] <- plots$plt[[1]] + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+plots$plt[[2]] <- plots$plt[[2]] + theme(legend.position = "bottom") + labs(title = "")
 
 plots %>% 
   pull(plt) %>% 
-  patchwork::wrap_plots(ncol = 1)
+  patchwork::wrap_plots(ncol = 1, )
 
 
 
-save(contamination_plot, plot_data, file = "../RData/Contamination_heatmap.RData")
+# save(contamination_plot, plot_data, file = "../RData/Contamination_heatmap.RData")
   
-height_hm <- 9
-width_hm <- 9
+height_hm <- 8
+width_hm <- 6
 plot_name <- "contamination_heatmap_l"
 ggsave(
   paste0("../figures/", plot_name, ".png"),
   height = height_hm,
   width = width_hm,
   dpi = "retina",
-  bg = "white")
+  bg = "transparent")
 ```
 
 ```{r}
