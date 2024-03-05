@@ -46,18 +46,21 @@ assembly_info <- fread("../data/PaPr00000216MP_nm_0.1.19/flye/assembly_info.txt"
   ) %>% 
   select(contig, length, circular)
 
-assembly = read.fasta("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
 cov = fread("../data/PaPr00000216MP_nm_0.1.19/metabat_cov.tsv")
 
 gnm_plasmid <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216MP_assembly_summary/NP-PaPr00000216MP_assembly_plasmid_summary.tsv")
 gnm_virus <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216MP_assembly_summary/NP-PaPr00000216MP_assembly_virus_summary.tsv")
 gnm_agg_score <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216MP_assembly_aggregated_classification/NP-PaPr00000216MP_assembly_aggregated_classification.tsv")
+
+
+assembly = read.fasta("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
+gc_df <- calculateGCContent("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
 ```
 
 
 
 ```{r}
-gc_df <- calculateGCContent("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
+
 
 mm <- gc_df %>% 
   left_join(cov %>% rename(contig = contigName))
@@ -65,7 +68,7 @@ mm <- gc_df %>%
 
 gnm_virus_m <- gnm_virus %>% 
   mutate(
-    mge = "virus"
+    mge = "Virus"
   ) %>% 
   rename(score = virus_score) %>% 
   select(seq_name, score, topology, taxonomy, mge)
@@ -104,16 +107,13 @@ binary_comparison_inc_f <- filter_comparison_df(binary_comparison_include, assem
 
 binary_comparison <- bind_rows(binary_comparison_bin_f, binary_comparison_inc_f) %>% 
   left_join(gnm) %>% 
-  separate(taxonomy, into = c("k","p","o","c","f"), sep = ";") %>% 
   mutate(
-    circular_html = ifelse(circular == "Y", " (closed)", " (not closed)"),
-    mge_html = ifelse(mge == "virus", paste0('Virus <span style="font-style: italic;">F. ', f,'</span>'), mge),
-    contig_bin = ifelse(!is.na(mge), mge_html, contig_bin),
+    contig_bin = ifelse(!is.na(mge), mge, contig_bin),
     length_str = paste0(round(length/1000, 0),"kb"),
     y_string = paste(contig_bin,contig,length_str),
     y_html = case_when(
       is.na(mge) ~ paste0('<span style="color: #808080;">',y_string, '</span>'),
-      mge == "Plasmid" ~ paste0('<strong style="color: #69B3A2; font-style=bold;">', y_string,circular_html, '</strong>'),
+      mge == "Plasmid" ~ paste0('<strong style="color: #69B3A2; font-style=bold;">', y_string, '</strong>'),
       .default = paste0('<strong style="color: #f09205;">', y_string, '</strong>')
     )
   )
@@ -178,18 +178,23 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
   
   plot <- plot +
     scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
-    coord_fixed(ratio = 1, clip = "off") +
+    coord_equal() +
     
-    geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 7) +
+    geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 5) +
     
 
     geom_text(aes(color = "No motif observations"), label = "", alpha = 0) +
     theme(
-      axis.text.y = element_markdown(vjust = 0.5, hjust = 0), # Rotate x-axis labels to 90 degrees
-      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5),
+      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
+      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
+      plot.subtitle = element_text(size = 6),
+      plot.title = element_text(size = 7),
+      legend.title = element_text(size = 5),
+      legend.text = element_text(size = 5),
+      legend.key.size = unit(0.3, 'cm'),
       panel.grid.minor = element_blank(),  # Remove minor gridlines
       panel.background = element_blank(),   # Remove panel background,
-      # aspect.ratio = 1
+      legend.position = "bottom"
     ) +
     labs(
       x = "Motif",
@@ -224,15 +229,17 @@ inclusion_heatmap  <- plot_methylation_profile(binary_comparison %>% filter(leng
 
 
 
-height_hm <- 6
-width_hm <- 10
+height_hm <- 4
+width_hm <- 6
 plot_name <- "include_heatmap"
 ggsave(
   paste0("../figures/", plot_name, ".png"),
+  plot = inclusion_heatmap,
   height = height_hm,
   width = width_hm,
   dpi = "retina",
-  bg = "white")
+  bg = "transparent"
+  )
 ```
 
 
@@ -242,7 +249,7 @@ ggsave(
 label_df <- tibble(
   `1_cov.bam` = c(30, 88, 30),
   gc = c(0.57, 0.57, 0.44),
-  label = c("bin.1.1", "plasmid fragments", "virus"),
+  label = c("bin.1.1", "plasmid contigs", "virus"),
   mge = c("bin.1.1", "Plasmid", "Virus")
 )
 
@@ -254,12 +261,12 @@ mm_bin <- mm_all %>% filter(bin == "bin.1.1", length > 12400) %>% mutate(mge = i
 
 inclusion_gc_cov <- mm_all %>% 
   filter(bin != "bin.1.1", `1_cov.bam` < 120) %>% 
-ggplot(aes(x = `1_cov.bam`, y = gc * 100)) +
+ggplot(aes(y = `1_cov.bam`, x = gc * 100)) +
   geom_point(color = "gray70", alpha = 0.6) + 
   geom_point(data = mm_bin, aes(color = mge), size=3, alpha = 0.7) +
   labs(
-    x = "Coverage",
-    y = "GC (%)"
+    y = "Coverage",
+    x = "GC (%)"
   ) +
   geom_label(data = label_df, aes(label = label, fill = mge), alpha = 0.8) +
   scale_color_manual(values = c("#404080",  "#69B3A2",  "#f09205")) + 
@@ -273,10 +280,11 @@ ggplot(aes(x = `1_cov.bam`, y = gc * 100)) +
 save(inclusion_heatmap, inclusion_gc_cov, file = "../RData/inclusion")
 
 height_hm <- 5
-width_hm <- 10
+width_hm <- 5
 plot_name <- "include_gc_cov"
 ggsave(
   paste0("../figures/", plot_name, ".png"),
+  plot = inclusion_gc_cov,
   height = height_hm,
   width = width_hm,
   dpi = "retina",
