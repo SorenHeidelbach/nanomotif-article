@@ -232,7 +232,7 @@ plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), c("bi
 motifs = c("CCGCGG_m-1", "AGAGC_a-2", "CCGAGC_a-3", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "GACATG_a-3", "GGCGCTRG_m-4","CGGAG_a-3", "CTGCAG_a-4", "GATATC_a-1", "GAGGAG_a-4","GCGATC_a-3", "TTCGAA_a-5")
 
 
-bins = c("bin.1.257", "bin.1.84")
+
 
 bins_panel = c(rep("bin.1.257", 18*14), rep("bin.1.257", 18*23))
   #panel=c(rep("Group 1",16*12),rep("Group 2", 12*12), rep("Group 3", 3*12)))
@@ -242,6 +242,10 @@ bins_q <- quality_a %>%
   filter(bin %in% bins) %>% 
   select(bin, Completeness, Contamination)
   
+
+
+
+
 make_plot <- function(bin2see) {
   data <- binary_comparison_all %>% filter(sample == "AD") %>% 
     filter(bin == bin2see) %>%
@@ -302,28 +306,30 @@ make_plot <- function(bin2see) {
       axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
       plot.subtitle = element_text(size = 6),
       plot.title = element_text(size = 7),
+      strip.text = element_text(size = 6),
       legend.title = element_text(size = 5),
       legend.text = element_text(size = 5),
       legend.key.size = unit(0.3, 'cm'),
       panel.grid.minor = element_blank(),  # Remove minor gridlines
       panel.background = element_blank(),   # Remove panel background,
+      plot.background = element_blank(),
     ) +
     labs(
-      x = "",
+      x = NULL,
       y = "",
       fill = "Methylation degree",
       color = "",
-      title = "Anaerobic Digester",
-      subtitle = bin_stats
+      #subtitle = bin_stats
     ) +
     guides(
       color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"●"), size = c(2)))
-    )
+    ) +
+    facet_grid(. ~ bin)
   
   return(contamination_plot)
 }
 
-
+bins = c("bin.1.257", "bin.1.84")
 plots = tibble(
   bin = bins
 ) %>% 
@@ -331,13 +337,16 @@ plots = tibble(
     plt = map(.x = bin, ~make_plot(.x))
   )
 
-# plots$plt[[1]] <- plots$plt[[1]] + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 
-plots$plt[[2]] <- plots$plt[[2]] + theme(legend.position = "bottom") + labs(title = "")
 
-plots %>% 
-  pull(plt) %>% 
-  patchwork::wrap_plots(ncol = 1, )
+plots$plt[[1]] <- plots$plt[[1]] + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(title = "Anaerobic digestor")
+
+plots$plt[[2]] <- plots$plt[[2]] + theme(legend.position = "bottom")
+
+
+plots %>%
+  pull(plt) %>%
+  patchwork::wrap_plots(ncol = 1)
 
 
 
@@ -380,17 +389,23 @@ binary_comparison_all %>%  filter(contig == "bin", motif_mod == "GATC_a-1")
 mm_a <- gc_df_a %>% 
   left_join(cov_a %>% rename(contig = contigName)) %>% 
   mutate(sample = "AD") %>% 
-  left_join(binary_comparison_all %>% filter(sample == "AD") %>% select(contig, bin, sample, is_contamination) %>% distinct(contig, sample, .keep_all = TRUE))
+  left_join(binary_comparison_all %>% filter(sample == "AD") %>% select(contig, bin, sample, is_contamination, length) %>% distinct(contig, sample, .keep_all = TRUE)) %>% 
+  filter(length >= 10000)
 
 mm_bin_ad <- mm_a %>% filter(bin %in% bins, sample == "AD")
 
 
+# Define breaks at exact powers of 10
+breaks <- c(10^(4:6))
+labels <- c(expression(10^4), expression(10^5), expression(10^6))
+
 mm_a %>% 
   filter(!bin %in% bins) %>% 
-ggplot(aes(y = `1_cov.bam`, x = gc * 100)) +
+ggplot(aes(y = `1_cov.bam`, x = gc * 100, size = length)) +
   geom_point(color = "gray70", alpha = 0.6) + 
   geom_point(data = mm_bin_ad %>% rename(Contamination = is_contamination), aes(color = Contamination, shape = bin), size=3, alpha = 0.7) +
-  coord_cartesian(ylim = c(0,1200), xlim=c(40,70)) +
+  coord_cartesian(xlim=c(40,70), ylim = c(1,10000)) +
+  scale_y_log10() +
   labs(
     y = "Coverage",
     x = "GC (%)"
@@ -399,7 +414,9 @@ ggplot(aes(y = `1_cov.bam`, x = gc * 100)) +
   base_plot_theme() +
   theme(
     legend.position = "bottom"
-  )
+  ) +
+  scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels) #+
+  # guides(size = guide_legend(title = "Fragment Length"))
 
 height_hm <- 9
 width_hm <- 6
@@ -409,7 +426,7 @@ ggsave(
   height = height_hm,
   width = width_hm,
   dpi = "retina",
-  bg = "white")
+  bg = "transparent")
 
 ```
 
@@ -453,7 +470,4 @@ ggplot(aes(x = `1_cov.bam`, y = gc * 100)) +
 
 
 ```
-
-
-
 
