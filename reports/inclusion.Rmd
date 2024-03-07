@@ -513,7 +513,7 @@ unbinned <- tibble(
   Total_Contigs = 3
 )
 
-plots <- quality %>% 
+include_plt_hm_data <- quality %>% 
   select(bin, Total_Contigs) %>% 
   mutate(bin = str_remove(bin, sample_name)) %>% 
   bind_rows(unbinned) %>% 
@@ -524,25 +524,25 @@ plots <- quality %>%
   slice(c(15,1,14,2:13)) %>% 
   filter(row_number() < 10) 
 
-plots$plt[[1]] <- plots$plt[[1]] + labs(title = "Simple Fecal") + theme(
+include_plt_hm_data$plt[[1]] <- include_plt_hm_data$plt[[1]] + labs(title = "Simple Fecal") + theme(
   axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), 
   axis.ticks.y = element_line(),
   strip.text.y.left =  element_blank()
 ) 
 
-plots$plt[[9]] <- plots$plt[[9]] + theme(
+include_plt_hm_data$plt[[9]] <- include_plt_hm_data$plt[[9]] + theme(
   legend.position = "none", 
   axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5), 
   axis.ticks.x = element_line()
 ) #+
   # guides(color = guide_legend(override.aes = list(alpha = 1, label = c("●"), size = c(2),  fill = c( "black"))))
 
-dplt <- plots %>%
+include_plt_hm <- include_plt_hm_data %>%
   pull(plt) %>% 
   patchwork::wrap_plots(ncol = 1)
 
 
-save(dplt, file = "../RData/fecal_simple_hm_w_include.RData")
+save(include_plt_hm,include_plt_hm_data, file = "../RData/fecal_simple_hm_w_include.RData")
 
 
 height_hm <- 8
