@@ -46,18 +46,21 @@ assembly_info <- fread("../data/PaPr00000216MP_nm_0.1.19/flye/assembly_info.txt"
   ) %>% 
   select(contig, length, circular)
 
-assembly = read.fasta("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
 cov = fread("../data/PaPr00000216MP_nm_0.1.19/metabat_cov.tsv")
 
 gnm_plasmid <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216MP_assembly_summary/NP-PaPr00000216MP_assembly_plasmid_summary.tsv")
 gnm_virus <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216MP_assembly_summary/NP-PaPr00000216MP_assembly_virus_summary.tsv")
 gnm_agg_score <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216MP_assembly_aggregated_classification/NP-PaPr00000216MP_assembly_aggregated_classification.tsv")
+
+
+# assembly = read.fasta("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
+gc_df <- calculateGCContent("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
 ```
 
 
 
 ```{r}
-gc_df <- calculateGCContent("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
+
 
 mm <- gc_df %>% 
   left_join(cov %>% rename(contig = contigName))
@@ -65,7 +68,7 @@ mm <- gc_df %>%
 
 gnm_virus_m <- gnm_virus %>% 
   mutate(
-    mge = "virus"
+    mge = "Virus"
   ) %>% 
   rename(score = virus_score) %>% 
   select(seq_name, score, topology, taxonomy, mge)
@@ -104,16 +107,13 @@ binary_comparison_inc_f <- filter_comparison_df(binary_comparison_include, assem
 
 binary_comparison <- bind_rows(binary_comparison_bin_f, binary_comparison_inc_f) %>% 
   left_join(gnm) %>% 
-  separate(taxonomy, into = c("k","p","o","c","f"), sep = ";") %>% 
   mutate(
-    circular_html = ifelse(circular == "Y", " (closed)", " (not closed)"),
-    mge_html = ifelse(mge == "virus", paste0('Virus <span style="font-style: italic;">F. ', f,'</span>'), mge),
-    contig_bin = ifelse(!is.na(mge), mge_html, contig_bin),
+    contig_bin = ifelse(!is.na(mge), mge, contig_bin),
     length_str = paste0(round(length/1000, 0),"kb"),
     y_string = paste(contig_bin,contig,length_str),
     y_html = case_when(
       is.na(mge) ~ paste0('<span style="color: #808080;">',y_string, '</span>'),
-      mge == "Plasmid" ~ paste0('<strong style="color: #69B3A2; font-style=bold;">', y_string,circular_html, '</strong>'),
+      mge == "Plasmid" ~ paste0('<strong style="color: #69B3A2; font-style=bold;">', y_string, '</strong>'),
       .default = paste0('<strong style="color: #f09205;">', y_string, '</strong>')
     )
   )
@@ -178,18 +178,23 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
   
   plot <- plot +
     scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
-    coord_fixed(ratio = 1, clip = "off") +
+    coord_equal() +
     
-    geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 7) +
+    geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 5) +
     
 
     geom_text(aes(color = "No motif observations"), label = "", alpha = 0) +
     theme(
-      axis.text.y = element_markdown(vjust = 0.5, hjust = 0), # Rotate x-axis labels to 90 degrees
-      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5),
+      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
+      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
+      plot.subtitle = element_text(size = 6),
+      plot.title = element_text(size = 7),
+      legend.title = element_text(size = 5),
+      legend.text = element_text(size = 5),
+      legend.key.size = unit(0.3, 'cm'),
       panel.grid.minor = element_blank(),  # Remove minor gridlines
       panel.background = element_blank(),   # Remove panel background,
-      # aspect.ratio = 1
+      legend.position = "bottom"
     ) +
     labs(
       x = "Motif",
@@ -224,16 +229,334 @@ inclusion_heatmap  <- plot_methylation_profile(binary_comparison %>% filter(leng
 
 
 
-height_hm <- 6
-width_hm <- 10
+height_hm <- 4
+width_hm <- 6
 plot_name <- "include_heatmap"
+ggsave(
+  paste0("../figures/", plot_name, ".png"),
+  plot = inclusion_heatmap,
+  height = height_hm,
+  width = width_hm,
+  dpi = "retina",
+  bg = "transparent"
+  )
+```
+
+
+```{r}
+
+make_plot <- function(facet) {
+  data <- binary_comparison %>% filter(length > 12400) %>% 
+    filter(bin == "bin.1.1") %>%
+    mutate(
+      contig = y_html,
+      bin_facet = ifelse(!is.na(mge), "Unbinned", "Bin.1.1: Comp. 100 - Cont. 0.13")
+    ) %>% 
+    filter(bin_facet == facet)
+  
+  data_complete <- data %>% 
+    select(contig, motif_mod, methylation_binary, mean, length) %>% 
+    complete(contig, motif_mod, fill = list(methylation_binary = NA, mean = NA, length = NA))
+  
+  plot_data <- left_join(data_complete, data %>% select(bin, contig,bin_facet) %>% distinct(contig, .keep_all = TRUE), by = c("contig"))
+  
+  motif_markdown <- data %>% 
+    select(motif_mod, motif_axis) %>% 
+    distinct(motif_mod, .keep_all = TRUE)
+  
+  plot_data <- left_join(plot_data, motif_markdown)
+  
+  y_levels = data %>% 
+    filter(!is.na(length)) %>% 
+    distinct(contig, .keep_all = TRUE) %>%
+    arrange(desc(contig_bin),length) %>% 
+    select(contig)
+  
+  
+  plot <- ggplot(plot_data) +
+    aes(x = motif_axis, y = factor(contig, levels = y_levels$contig))
+  
+  plot <- plot +
+    geom_tile(aes(fill = mean), linewidth = 0.2, color = "gray20")
+  
+  plot <- plot +
+    scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
+    coord_equal() +
+    
+    geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 5) +
+    
+  
+    geom_text(aes(color = "No motif observations"), label = "", alpha = 0) +
+    theme(
+      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
+      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
+      plot.subtitle = element_text(size = 6),
+      plot.title = element_text(size = 7),
+      legend.title = element_text(size = 5),
+      legend.text = element_text(size = 5),
+      legend.key.size = unit(0.3, 'cm'),
+      panel.grid.minor = element_blank(),  # Remove minor gridlines
+      panel.background = element_blank(),   # Remove panel background,
+      legend.position = "bottom"
+    ) +
+    labs(
+      x = NULL,
+      y = "",
+      fill = "Methylation degree",
+    ) +
+    scale_color_manual(name = "", values = c("No motif observations" = "black")) +
+    guides(color = guide_legend(override.aes = list(alpha = 1, label = c("●"), size = c(2),  fill = c( "black")))) +
+    facet_grid(. ~ bin_facet)
+  
+  return(plot)
+}
+
+plots <- tibble(
+  f = c("Unbinned", "Bin.1.1: Comp. 100 - Cont. 0.13")
+) %>% 
+  mutate(
+    plt = map(f, ~make_plot(.x))
+  )
+
+plots$plt[[1]] <- plots$plt[[1]] + theme(legend.position = "none", axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(title = "Simple Fecal")
+
+plots %>% 
+  pull(plt) %>% 
+  patchwork::wrap_plots(ncol = 1)
+
+
+height_hm <- 4
+width_hm <- 6
 ggsave(
   paste0("../figures/", plot_name, ".png"),
   height = height_hm,
   width = width_hm,
   dpi = "retina",
-  bg = "white")
+  bg = "transparent"
+  )
 ```
+
+
+
+```{r}
+motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs.tsv")
+motifs_scored <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs-scored.tsv")
+bin_info <- fread("../data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv")
+bin <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/bins.tsv", header = FALSE)
+colnames(bin) <-  c("contig", "bin")
+bin <- bin %>% 
+  mutate(bin = str_remove(bin, sample_name))
+
+quality <- quality %>% 
+  mutate(bin = str_remove(bin, sample_name)) %>% 
+  mutate(
+    Completeness = ifelse(Completeness >= 100,  sprintf("%.1f", Completeness),  sprintf("%.2f", Completeness))
+  )
+
+include_contigs <- binary_comparison %>% 
+  filter(length > 12400, bin == "bin.1.1") %>% 
+  select(bin, contig, mge) %>% 
+  distinct(contig, .keep_all = TRUE)
+
+
+BIN_CONSENSUS_MOTIFS <- bin_consensus %>%
+  mutate(
+    n_motifs = n_mod_bin + n_nomod_bin - 1,
+    mean_bin = n_mod_bin / n_motifs
+  ) %>% 
+  filter(n_motifs > 500) %>% 
+  mutate(
+    motif_axis = paste0(
+        str_sub(motif, 1, mod_position),
+        "<strong>",
+        str_sub(motif, mod_position+1, mod_position+1),
+        "<sub><sup>",
+        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+        "</sup></sub>",
+        "</strong>",
+        str_sub(motif, mod_position+2, -1)
+      )
+  ) %>% 
+  pull(motif_axis) %>% 
+  unique()
+  
+
+contig_methylation <- motifs_scored %>% 
+  left_join(bin) %>%
+  left_join(assembly_info) %>% 
+  filter(!is.na(bin) | contig %in% include_contigs$contig) %>%
+  left_join(include_contigs %>% select(contig, mge)) %>% 
+  mutate(bin = ifelse(is.na(bin), "Unbinned", bin)) %>% 
+  mutate(
+    n_motifs = n_mod + n_nomod -1,
+    mean = n_mod / n_motifs,
+    motif_axis = paste0(
+        str_sub(motif, 1, mod_position),
+        "<strong>",
+        str_sub(motif, mod_position+1, mod_position+1),
+        "<sub><sup>",
+        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+        "</sup></sub>",
+        "</strong>",
+        str_sub(motif, mod_position+2, -1)
+      ),
+    length_str = paste0(round(length/1000, 0),"kb"),
+    bin_y = ifelse(bin == "Unbinned", mge, bin),
+    y_string = paste(bin_y,contig,length_str),
+    y_html = case_when(
+      is.na(mge) ~ paste0('<span style="color: #808080;">',y_string, '</span>'),
+      mge == "Plasmid" ~ paste0('<strong style="color: #69B3A2; font-style=bold;">', y_string, '</strong>'),
+      .default = paste0('<strong style="color: #f09205;">', y_string, '</strong>')
+    )
+  ) %>% 
+  left_join(quality %>% select(bin, Completeness, Contamination))
+
+contig_methylation_matrix <- contig_methylation %>% 
+  filter(motif_axis %in% BIN_CONSENSUS_MOTIFS) %>% 
+  select(contig, motif_axis,mean) %>% 
+  pivot_wider(names_from = motif_axis, values_from = "mean") %>% 
+  pivot_longer(!contig, names_to = "motif_axis", values_to = "mean")
+
+motif_dist_matrix <-  contig_methylation %>% 
+  filter(motif_axis %in% BIN_CONSENSUS_MOTIFS) %>% 
+  select(contig, motif_axis,mean) %>% 
+  pivot_wider(names_from = contig, values_from = "mean")
+
+hclust_ward <- hclust(dist(motif_dist_matrix %>% column_to_rownames(var = "motif_axis") %>% mutate(across(everything(), ~replace_na(., 0)))), method = "ward.D2")
+
+ward_dendogram <- as.dendrogram(hclust_ward)
+ward_order <- order.dendrogram(ward_dendogram)
+
+contig_methylation_complete <- left_join(contig_methylation_matrix, contig_methylation %>% select(!motif_axis, !mean)) %>% 
+  mutate(
+    motif_axis = factor(
+      motif_axis,
+      levels = hclust_ward$labels[ward_order]
+    )
+  )
+
+
+make_plot <- function(facet, ratio) {
+  data <- contig_methylation_complete %>% 
+    filter(bin == facet) %>% 
+    mutate(
+      contig = y_html,
+      bin_facet = ifelse(
+        bin == "Unbinned", 
+        "Unbinned",
+        paste0(
+          bin, 
+          "\nComp. ", Completeness, 
+          "\nCont. ", Contamination
+      ))
+    )
+  
+  y_levels = data %>% 
+    filter(!is.na(length)) %>% 
+    distinct(contig, .keep_all = TRUE) %>%
+    arrange(desc(bin),length) %>% 
+    select(contig)
+  
+  
+  plot <- ggplot(data) +
+    aes(x = motif_axis, y = factor(contig, levels = y_levels$contig))
+  
+  plot <- plot +
+    geom_tile(aes(fill = mean), linewidth = 0.0, color = "gray20")
+  
+  plot <- plot +
+    scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
+    
+    geom_text(data = filter(data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 3) +
+    
+  
+    geom_text(aes(color = "No motif observations"), label = "", alpha = 0) +
+    theme(
+      axis.text.x = element_blank(), 
+      axis.ticks.x = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.text.y = element_blank(),
+      
+      plot.subtitle = element_text(size = 6),
+      plot.title = element_text(size = 7),
+      
+      strip.text = element_text(size = 5),
+      strip.background = element_blank(),
+      strip.text.y.left = element_text(angle = 0, hjust = 0),
+      
+      
+      legend.position = "none",
+      legend.title = element_text(size = 5),
+      legend.text = element_text(size = 5),
+      legend.key.size = unit(0.3, 'cm'),
+      
+      
+      panel.grid.minor = element_blank(),  # Remove minor gridlines
+      panel.background = element_blank(),   # Remove panel background,
+      
+      plot.margin = margin(t = 0, r = 5, b = 0, l = 5, unit = "pt")
+    ) +
+    labs(
+      x = NULL,
+      y = NULL,
+      fill = "Methylation degree",
+    ) +
+    scale_color_manual(name = "", values = c("No motif observations" = "black")) +
+    facet_grid(bin_facet ~ ., switch = "y") +
+    coord_fixed(ratio = ratio)
+    
+  return(plot)
+}
+
+unbinned <- tibble(
+  bin = "Unbinned",
+  Total_Contigs = 3
+)
+
+include_plt_hm_data <- quality %>% 
+  select(bin, Total_Contigs) %>% 
+  mutate(bin = str_remove(bin, sample_name)) %>% 
+  bind_rows(unbinned) %>% 
+  mutate(ratio = 1/Total_Contigs * 2) %>% 
+  mutate(
+    plt = map2(.x = bin, .y = ratio, ~make_plot(.x, .y))
+  ) %>% 
+  slice(c(15,1,14,2:13)) %>% 
+  filter(row_number() < 10) 
+
+include_plt_hm_data$plt[[1]] <- include_plt_hm_data$plt[[1]] + labs(title = "Simple Fecal") + theme(
+  axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), 
+  axis.ticks.y = element_line(),
+  strip.text.y.left =  element_blank()
+) 
+
+include_plt_hm_data$plt[[9]] <- include_plt_hm_data$plt[[9]] + theme(
+  legend.position = "none", 
+  axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5), 
+  axis.ticks.x = element_line()
+) #+
+  # guides(color = guide_legend(override.aes = list(alpha = 1, label = c("●"), size = c(2),  fill = c( "black"))))
+
+include_plt_hm <- include_plt_hm_data %>%
+  pull(plt) %>% 
+  patchwork::wrap_plots(ncol = 1)
+
+
+save(include_plt_hm,include_plt_hm_data, file = "../RData/fecal_simple_hm_w_include.RData")
+
+
+height_hm <- 8
+width_hm <- 6
+plot_name = "fecal_simple_heatmap_w_include"
+ggsave(
+  paste0("../figures/", plot_name, ".png"),
+  height = height_hm,
+  width = width_hm,
+  dpi = "retina",
+  bg = "transparent"
+  )
+```
+
 
 
 
@@ -242,41 +565,75 @@ ggsave(
 label_df <- tibble(
   `1_cov.bam` = c(30, 88, 30),
   gc = c(0.57, 0.57, 0.44),
-  label = c("bin.1.1", "plasmid fragments", "virus"),
+  label = c("bin.1.1", "plasmid contigs", "virus"),
   mge = c("bin.1.1", "Plasmid", "Virus")
 )
 
+
+
+bin_label
+
+
+
 mm_all <- mm %>% 
   right_join(binary_comparison) %>% 
-  distinct(contig, .keep_all = TRUE)
+  distinct(contig, .keep_all = TRUE) %>% 
+  filter(length >= 10000, bin != "unbinned")
 
-mm_bin <- mm_all %>% filter(bin == "bin.1.1", length > 12400) %>% mutate(mge = ifelse(is.na(mge), "bin.1.1",mge))
-
-inclusion_gc_cov <- mm_all %>% 
-  filter(bin != "bin.1.1", `1_cov.bam` < 120) %>% 
-ggplot(aes(x = `1_cov.bam`, y = gc * 100)) +
-  geom_point(color = "gray70", alpha = 0.6) + 
-  geom_point(data = mm_bin, aes(color = mge), size=3, alpha = 0.7) +
-  labs(
-    x = "Coverage",
-    y = "GC (%)"
-  ) +
-  geom_label(data = label_df, aes(label = label, fill = mge), alpha = 0.8) +
-  scale_color_manual(values = c("#404080",  "#69B3A2",  "#f09205")) + 
-  scale_fill_manual(values = c("#404080",  "#69B3A2",  "#f09205")) +
-  base_plot_theme() +
-  theme(
-    legend.position = "none",
-    aspect.ratio = 1
+bin_label <- mm_all %>% 
+  filter(!str_detect(bin_contig, "unbinned")) %>% 
+  group_by(bin) %>% 
+  summarise(
+    `1_cov.bam` = mean(`1_cov.bam`),
+    gc = mean(gc)
   )
 
-save(inclusion_heatmap, inclusion_gc_cov, file = "../RData/inclusion")
+
+mm_bin <- mm_all %>% filter(bin == "bin.1.1", length > 12400) %>% mutate(mge = ifelse(is.na(mge), "bin.1.1",mge))
+mm_bin_mge <- mm_all %>% filter(bin == "bin.1.1", length > 12400, !is.na(mge))
+
+labels <- c("250k", "500k", "750k", "1000k")
+breaks <- c(250, 500, 750, 1000) * 1000
+
+tab20_colors <- c("#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", 
+                  "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", 
+                  "#8c564b", "#c49c94", "#e377c2", "#f7b6d2")
+
+
+inclusion_gc_cov <- mm_all %>% 
+  filter(!str_detect(bin_contig, "unbinned")) %>% 
+ggplot(aes(y = `1_cov.bam`, x = gc * 100)) +
+  geom_point(aes(size = length, color = bin), alpha = 0.6) + 
+  ggrepel::geom_label_repel(data = bin_label, aes(label = bin, fill = bin), alpha = 0.7, box.padding = 0.5, size = 3) +
+  geom_point(data = mm_bin_mge, aes(shape = mge, size = length), alpha = 0.7, color = "darkblue") +
+  labs(
+    y = "Coverage",
+    x = "GC (%)"
+  ) +
+  scale_y_log10() +
+  scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels) + #, breaks = breaks, labels = labels
+  # scale_color_manual(name = "", values = c("#404080",  "#69B3A2",  "#f09205")) +
+  scale_color_manual(name = "", values = tab20_colors) +
+  scale_fill_manual(name = "", values = tab20_colors) +
+  base_plot_theme() +
+  theme(
+    legend.position = "bottom",
+    aspect.ratio = 1,
+    axis.title = element_text(size = 7),
+    axis.text = element_text(size = 5),
+  ) +
+  guides(fill = "none", color = "none")
+
+inclusion_gc_cov
+
+save(inclusion_gc_cov, file = "../RData/inclusion_gc_cov.RData")
 
 height_hm <- 5
-width_hm <- 10
+width_hm <- 7
 plot_name <- "include_gc_cov"
 ggsave(
   paste0("../figures/", plot_name, ".png"),
+  plot = inclusion_gc_cov,
   height = height_hm,
   width = width_hm,
   dpi = "retina",
@@ -295,6 +652,67 @@ ggsave(
   bg = "white")
 ```
 
+```{r}
+kmer_df <- tibble(
+  contig = assembly_info$contig
+) %>% 
+  mutate(
+    kmer_count = map(.x = contig, ~seqinr::count(seq = assembly[[.x]], wordsize = 4, freq = TRUE))
+  )
+
+kmer_matrx <- kmer_df %>% 
+  mutate(
+    kmer_count = map(.x = kmer_count, ~(.x %>% as.data.frame() %>% pivot_wider(names_from = Var1, values_from = Freq)))
+  ) %>% 
+  unnest(kmer_count) 
+
+kmer_matrx[-1]
+
+
+kmer_tsne <- Rtsne::Rtsne(dist(kmer_matrx[-1]))
+
+kmer_tsne_df <- tibble(
+  contig = kmer_matrx$contig
+) %>% 
+  bind_cols(as.data.frame(kmer_tsne$Y)) %>% 
+  left_join(mm_all)
+
+kmer_bin1.1 <- kmer_tsne_df %>% filter(bin == "bin.1.1", length > 12400) %>% mutate(mge = ifelse(is.na(mge), "bin.1.1",mge))
+
+kmer_tsne_df %>% 
+  filter(bin != "bin.1.1") %>% 
+ggplot(aes(x = V1, y = V2)) +
+  geom_point(color = "gray70", alpha = 0.6) + 
+  geom_point(data = kmer_bin1.1, aes(color = mge), size=3, alpha = 0.7) +
+  labs(
+    x = "tSNE 1",
+    y = "tSNE 2"
+  ) +
+  scale_color_manual(values = c("#404080",  "#69B3A2",  "#f09205")) + 
+  scale_fill_manual(values = c("#404080",  "#69B3A2",  "#f09205")) +
+  base_plot_theme() +
+  theme(
+    legend.position = "right",
+    aspect.ratio = 1
+  )
+
+
+kmer_tsne_df %>% 
+ggplot(aes(x = V1, y = V2, color = bin)) +
+  geom_point(alpha = 0.6) + 
+  # geom_point(data = kmer_bin1.1, aes(color = mge), size=3, alpha = 0.7) +
+  labs(
+    x = "tSNE 1",
+    y = "tSNE 2"
+  ) +
+  # scale_color_manual(values = c("#404080",  "#69B3A2",  "#f09205")) + 
+  # scale_fill_manual(values = c("#404080",  "#69B3A2",  "#f09205")) +
+  base_plot_theme() +
+  theme(
+    legend.position = "right",
+    aspect.ratio = 1
+  )
+```
 
 
 

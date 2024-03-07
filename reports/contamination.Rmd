@@ -100,6 +100,14 @@ binary_comparison_all <- bind_rows(binary_comparison_df_f_a, binary_comparison_d
 
 ```
 
+```{r}
+bin_contamination_all %>% 
+  group_by(sample, mag_quality) %>%
+  summarise(
+    n = n()
+  )
+  
+```
 
 
 ```{r}
@@ -219,9 +227,15 @@ plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), c("bi
 ```
 
 ```{r}
-motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
+# motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
 
-bins = c("bin.1.257", "bin.1.396", "bin.1.104", "bin.1.32")
+motifs = c("CCGCGG_m-1", "AGAGC_a-2", "CCGAGC_a-3", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "GACATG_a-3", "GGCGCTRG_m-4","CGGAG_a-3", "CTGCAG_a-4", "GATATC_a-1", "GAGGAG_a-4","GCGATC_a-3", "TTCGAA_a-5")
+
+bins = c("bin.1.257", "bin.1.84")
+
+
+bins_panel = c(rep("bin.1.257", 18*14), rep("bin.1.257", 18*23))
+  #panel=c(rep("Group 1",16*12),rep("Group 2", 12*12), rep("Group 3", 3*12)))
 
 bins_q <- quality_a %>%
   mutate(bin = str_remove(bin, "mmlong2_lite.")) %>% 
@@ -229,28 +243,25 @@ bins_q <- quality_a %>%
   select(bin, Completeness, Contamination)
   
 
-binary_comparison_all %>% filter(sample == "AD") %>% pull(motif_mod) %>% unique()
 
-data <- binary_comparison_all %>% filter(sample == "AD") %>% 
-    filter(bin %in%  bins) %>%
+
+
+make_plot <- function(bin2see) {
+  data <- binary_comparison_all %>% filter(sample == "AD") %>% 
+    filter(bin == bin2see) %>%
     left_join(bins_q) %>% 
     mutate(
       bin = paste0(bin, ": Comp. ", Completeness, " - Cont. ", sprintf("%.2f", Contamination)),
       length_str = paste0(round(length/1000),"kb"),
       contig = paste(contig,length_str),
       contig = case_when(
-        # bin == "bin.1.396" & !is_contamination ~ paste0('<strong style="color: #69B3A2;">', contig, '</strong>'),
-        # bin == "bin.1.257" & !is_contamination ~ paste0('<strong style="color: #404080;">', contig, '</strong>'),
-        # bin == "bin.1.32" & !is_contamination ~ paste0('<strong style="color: #ffba52;">', contig, '</strong>'),
-        # bin == "bin.1.396" & is_contamination ~ paste0('<strong style="color: #b00d02;">', contig, '</strong>'),
         is_contamination ~ paste0('<strong style="color: #b00d02;">', contig, '</strong>'),
         .default = paste0('<span style="color: #808080;">', contig, '</span>')
       )
     ) %>%
     filter(motif_mod %in% motifs)
-    # group_by(motif_mod) %>%
-    # filter(sum(methylation_binary, na.rm = TRUE) != 0) %>%
-    # ungroup()
+  
+  bin_stats = data$bin[1]
   
   data_complete <- data %>% 
     select(contig, motif_mod, methylation_binary, mean, length) %>% 
@@ -276,12 +287,12 @@ data <- binary_comparison_all %>% filter(sample == "AD") %>%
   
   
     contamination_plot <- contamination_plot +
-      geom_tile(aes(fill = mean), linewidth = 0.2, color = "gray20", )
+      geom_tile(aes(fill = mean), linewidth = 0.2, color = "gray20")
   
   
   contamination_plot <- contamination_plot +
     scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
-    # coord_fixed(ratio = 1, clip = "off") +
+    coord_equal() +
     
     geom_text(aes(color = "Contamination"), label = "", alpha = 1) +
     geom_text(aes(color = "No motif observations"), label = "", alpha = 1) +
@@ -290,85 +301,76 @@ data <- binary_comparison_all %>% filter(sample == "AD") %>%
     scale_color_manual(values = c("#b00d02", "black")) +
     geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 7) +
     theme(
-      axis.text.y = element_markdown(vjust = 0.5, hjust = 0), # Rotate x-axis labels to 90 degrees
-      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5),
+      legend.position = "none",
+      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
+      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
+      plot.subtitle = element_text(size = 6),
+      plot.title = element_text(size = 7),
+      strip.text = element_text(size = 6),
+      legend.title = element_text(size = 5),
+      legend.text = element_text(size = 5),
+      legend.key.size = unit(0.3, 'cm'),
       panel.grid.minor = element_blank(),  # Remove minor gridlines
       panel.background = element_blank(),   # Remove panel background,
-      aspect.ratio = 1
+      plot.background = element_blank(),
     ) +
     labs(
-      x = "",
+      x = NULL,
       y = "",
       fill = "Methylation degree",
-      color = ""
+      color = "",
+      #subtitle = bin_stats
     ) +
     guides(
-      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"●"), size = c(4)))
+      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"●"), size = c(2)))
     ) +
-    facet_wrap(bin ~ ., ncol = 2, scales = "free_y", axis.labels = "all_y")
+    facet_grid(. ~ bin)
   
-  contamination_plot
+  return(contamination_plot)
+}
 
-save(contamination_plot, plot_data, file = "../RData/Contamination_heatmap.RData")
+
+plots_contamination_data = tibble(
+  bin = bins
+) %>% 
+  mutate(
+    plt = map(.x = bin, ~make_plot(.x))
+  )
+
+
+
+plots_contamination_data$plt[[1]] <- plots_contamination_data$plt[[1]] + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(title = "Anaerobic digestor")
+
+plots_contamination_data$plt[[2]] <- plots_contamination_data$plt[[2]] + theme(legend.position = "bottom")
+
+
+contamination_plt <- plots_contamination_data %>%
+  pull(plt) %>%
+  patchwork::wrap_plots(ncol = 1)
+
+
+
+save(contamination_plt, plots_contamination_data, file = "../RData/Contamination_heatmap.RData")
   
-height_hm <- 9
-width_hm <- 11
-plot_name <- "contamination_sq"
-ggsave(
-  paste0("../figures/", plot_name, ".png"),
-  height = height_hm,
-  width = width_hm,
-  dpi = "retina",
-  bg = "white")
+# height_hm <- 8
+# width_hm <- 6
+# plot_name <- "contamination_heatmap_l"
+# ggsave(
+#   paste0("../figures/", plot_name, ".png"),
+#   height = height_hm,
+#   width = width_hm,
+#   dpi = "retina",
+#   bg = "transparent")
 ```
-
-# Together
-```{r}
-# plot_methylation_profile(binary_comparison_all, "bin.1.407", motifs = c("GAGRAG_a-4", "GAWTC_a-1", "GACT_a-1", "GGCAG_a-3"), annotate = F, binary = F) #get_consensus_motifs(bin_consensus, "bin.1.407")
-a <- plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.1.257", motifs = get_consensus_motifs(bin_consensus_all %>% filter(sample == "AD"), "bin.1.257"), annotate = F, binary = F) +
-  labs(
-    fill = "",
-    x = "",
-    title = "Anaerobic Digestor - bin.1.257",
-    subtitle = get_title(bin_contamination_all %>% filter(sample == "AD"), "bin.1.257")[1,1]
-  ) +
-  theme(
-    title = element_text(size = 5)
-  )
-f <- plot_methylation_profile(binary_comparison_all %>% filter(sample == "FECAL"), "bin.1.142", motifs = c("CCTGG_m-1", "TCTGG_m-1"), annotate = F, binary = F) + 
-  labs(
-    fill = "",
-    x = "",
-    title = "Fecal complex - bin.1.142",
-    subtitle = get_title(bin_contamination_all %>% filter(sample == "FECAL"), "bin.1.142")[1,1]
-  ) +
-  theme(
-    title = element_text(size = 5)
-  )
-```
-
-
-```{r}
-ggpubr::ggarrange(a,f, ncol = 2, common.legend = T, legend = "right")
-height_hm <- 4.5
-width_hm <- 8
-plot_name <- "contamination"
-ggsave(
-  paste0("../figures/", plot_name, ".png"),
-  height = height_hm,
-  width = width_hm,
-  dpi = "retina",
-  bg = "white")
-```
-
 
 ```{r}
 # gc_df_a <- calculateGCContent("../data/anaerobic_digestor/mmlong2_lite/results/mmlong2_lite_assembly.fasta")
 
-write_delim(gc_df_a, "../data/anaerobic_digestor/gc_content.tsv", delim = "\t")
+# write_delim(gc_df_a, "../data/anaerobic_digestor/gc_content.tsv", delim = "\t")
+gc_df_a <- fread("../data/anaerobic_digestor/gc_content.tsv")
 
 # gc_df_fe <- calculateGCContent("../data/fecal/mmlong2_lite/results/mmlong2_lite_assembly.fasta")
-write_delim(gc_df_fe, "../data/fecal/gc_content.tsv", delim = "\t")
+# write_delim(gc_df_fe, "../data/fecal/gc_content.tsv", delim = "\t")
 ```
 
 ```{r}
@@ -381,6 +383,54 @@ kmer_4["gatc"]
 binary_comparison_all %>%  filter(contig == "bin", motif_mod == "GATC_a-1")
 
 (8778 / (19054-1399))
+```
+
+```{r}
+mm_a <- gc_df_a %>% 
+  left_join(cov_a %>% rename(contig = contigName)) %>% 
+  mutate(sample = "AD") %>% 
+  left_join(binary_comparison_all %>% filter(sample == "AD") %>% select(contig, bin, sample, is_contamination, length) %>% distinct(contig, sample, .keep_all = TRUE)) %>% 
+  filter(length >= 10000)
+
+mm_bin_ad <- mm_a %>% filter(bin %in% bins, sample == "AD")
+
+
+# Define breaks at exact powers of 10
+breaks <- c(10^(4:6))
+labels <- c(expression(10^4), expression(10^5), expression(10^6))
+
+contamination_gc_cov_plt <- mm_a %>% 
+  filter(!bin %in% bins) %>% 
+ggplot(aes(y = `1_cov.bam`, x = gc * 100, size = length)) +
+  geom_point(color = "gray70", alpha = 0.6) + 
+  geom_point(data = mm_bin_ad %>% rename(Contamination = is_contamination), aes(color = Contamination, shape = bin), size=3, alpha = 0.7) +
+  coord_cartesian(xlim=c(40,70), ylim = c(1,10000)) +
+  scale_y_log10() +
+  labs(
+    y = "Coverage",
+    x = "GC (%)"
+  ) +
+  scale_color_manual(values = c("#404080",  "#b00d02")) + 
+  base_plot_theme() +
+  theme(
+    legend.position = "bottom"
+  ) +
+  scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels) #+
+  # guides(size = guide_legend(title = "Fragment Length"))
+
+
+save(contamination_gc_cov_plt, file = "../RData/contamination_gc_cov_data.RData")
+
+height_hm <- 9
+width_hm <- 6
+plot_name <- "contamination_gc_cov"
+ggsave(
+  paste0("../figures/", plot_name, ".png"),
+  height = height_hm,
+  width = width_hm,
+  dpi = "retina",
+  bg = "transparent")
+
 ```
 
 
@@ -423,7 +473,4 @@ ggplot(aes(x = `1_cov.bam`, y = gc * 100)) +
 
 
 ```
-
-
-
 
