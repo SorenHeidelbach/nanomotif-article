@@ -26,16 +26,16 @@ Do not flatten labelling or scale/error bars onto images – uneditable or low-r
 ```{r}
 library(tidyverse)
 library(patchwork)
-library(png)
 library(grid)
 
+```
+
+# Figure panel 1
+
+### Loading plot for figure panel 1
+```{r}
 load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/benchmark_heatmap_bin_consensus.Rdata")
 load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/benchmark_heatmap_both.Rdata")
-load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/zymo_and_mono_heatmap.Rdata")
-#method <- readPNG("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/reports/nanomotif_article_temp/nanomotif_method.png", native = TRUE)
-
-method <- readPNG("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/nanomotif_method (2).png")
-method_grob <- rasterGrob(method, interpolate = TRUE)
 ```
 
 
@@ -313,7 +313,7 @@ mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
     labels = scales::percent, n.breaks = 6, guide = guide_legend(title.position = "top", direction = "horizontal", override.aes = list(alpha = 1))) +
     #guides(fill = guide_legend(title.position = "top", direction = "horizontal", title.hjust = 0.5)) +
   geom_text(data=plot_data[(n_mod + n_nomod - 1)==0], label = ".", hjust=0.5, vjust=0, size=3) +
-  geom_text(data=plot_data[linked_mtase == TRUE], label = "★", hjust=0.5, vjust=0.5, size=2, color = "orange") +
+  geom_text(data=plot_data[linked_mtase == TRUE], label = "+", hjust=0.5, vjust=0.5, size=2, color = "orange") +
   coord_fixed(ratio= 1, clip="off") +
   theme(
     axis.text.y = element_markdown(vjust = 0.5, hjust = 0,size=12), # Rotate x-axis labels to 90 degrees
@@ -329,9 +329,9 @@ mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
     fill = "Methylation degree"
   ) +
   geom_text(aes(color = "No motif observations"), alpha = 0, label ="") +
-  geom_text(aes(color = "Assigned MTase"), alpha=0, label = "") +
-  scale_color_manual(name = "Indicator", values = c("No motif observations" = "black", "Assigned MTase" = "orange")) +
-  guides(color = guide_legend(direction = "vertical", override.aes = list(alpha = 1, label = c("★", "●"), size = c(2, 1),  fill = c("orange", "black")))) # Adjust this line as needed
+  geom_text(aes(color = "Linked MTase"), alpha=0, label = "") +
+  scale_color_manual(name = NULL, values = c("No motif observations" = "black", "Assigned MTase" = "orange")) +
+  guides(color = guide_legend(direction = "vertical", override.aes = list(alpha = 1, label = c("+", "."), size = c(2, 3),  fill = c("orange", "black")))) # Adjust this line as needed
 
 mono_and_zymo_heatmap
 ```
@@ -339,9 +339,10 @@ mono_and_zymo_heatmap
 
 
 
+
 ```{r}
 main_theme <- theme(
-    text = element_text(family = "sans", size = 0.5),
+    text = element_text(family = "sans", size = 1),
     plot.title = element_text(size = 5, family = "sans"),
     strip.text = element_markdown(size = 5, family = "sans"),
     strip.text.y.right = element_markdown(face = "bold", size = 6, family = "sans"),
@@ -364,7 +365,9 @@ p3 <- mono_and_zymo_heatmap + main_theme + theme(legend.key.size = unit(0.2, "cm
                                                  #legend.spacing.x = unit(0.01, "cm"),
                                                  legend.justification = c(1, 0),
                                                  legend.box.just = "right",
-                                                 legend.margin = margin(t = -5, unit = "pt")
+                                                 legend.margin = margin(t = -5, unit = "pt"),
+                                                 axis.text.y = element_markdown(size=6, family = "sans"), # Rotate x-axis labels to 90 degrees
+                                                  axis.text.x = element_markdown(size = 6, family = "sans")
 )
 
 p4 <- hm_combined + main_theme + theme(legend.position = "right", 
@@ -375,7 +378,7 @@ p4_grob <- ggplotGrob(p4)
 ```
 
 ```{r}
-png("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_1.png", res = 600, height = 14, width = 18, units = "cm")
+pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_1.pdf", height = 5.51181102, width = 7.08661417, family = "sans")
 
 layout1 <- grid.layout(nrow = 2, ncol = 2,
                       widths = unit(c(9, 11), "null"),
@@ -405,16 +408,6 @@ grid.draw(p3_grob)
 grid.text("b", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(3, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
 upViewport()  # Go back up to the layout level
 
-pushViewport(viewport(layout = layout1))
-
-# For p1 in the top left area
-pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 1))
-grid.draw(method_grob)
-grid.text("a", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(2.5, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
-upViewport()
-
-
-
 pushViewport(viewport(layout = layout4))
 
 # For p2 in the bottom left area
@@ -432,7 +425,11 @@ grid.text("d", x = unit(0, "npc") + unit(5, "mm") , y = unit(1, "npc") - unit(6,
 upViewport()
 
 dev.off()
+
+
 ```
+
+
 
 
 
