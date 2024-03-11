@@ -229,7 +229,7 @@ plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), c("bi
 ```{r}
 # motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
 
-motifs = c("CCGCGG_m-1", "AGAGC_a-2", "CCGAGC_a-3", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "GACATG_a-3", "GGCGCTRG_m-4","CGGAG_a-3", "CTGCAG_a-4", "GATATC_a-1", "GAGGAG_a-4","GCGATC_a-3", "TTCGAA_a-5")
+motifs = c("CCGCGG_m-1", "AGAGC_a-2", "CCGAGC_a-3", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "GACATG_a-3","CGGAG_a-3", "CTGCAG_a-4", "GATATC_a-1", "GAGGAG_a-4","GCGATC_a-3", "TTCGAA_a-5")
 
 bins = c("bin.1.257", "bin.1.84")
 
