@@ -570,11 +570,6 @@ label_df <- tibble(
 )
 
 
-
-bin_label
-
-
-
 mm_all <- mm %>% 
   right_join(binary_comparison) %>% 
   distinct(contig, .keep_all = TRUE) %>% 
@@ -605,7 +600,7 @@ inclusion_gc_cov <- mm_all %>%
 ggplot(aes(y = `1_cov.bam`, x = gc * 100)) +
   geom_point(aes(size = length, color = bin), alpha = 0.6) + 
   ggrepel::geom_label_repel(data = bin_label, aes(label = bin, fill = bin), alpha = 0.7, box.padding = 0.5, size = 3) +
-  geom_point(data = mm_bin_mge, aes(shape = mge, size = length), alpha = 0.7, color = "darkblue") +
+  geom_point(data = mm_bin_mge, aes(shape = mge, size = length), alpha = 0.7, color = "darkred") +
   labs(
     y = "Coverage",
     x = "GC (%)"
