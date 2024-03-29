@@ -108,6 +108,14 @@ bin_contamination_all %>%
   )
   
 ```
+```{r}
+bin_contamination_all %>% 
+  group_by(sample, mag_quality) %>%
+  summarise(
+    n = n()
+  )
+  
+```
 
 
 ```{r}
@@ -230,7 +238,15 @@ plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), c("bi
 # motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
 
 motifs = c("CCGCGG_m-1", "AGAGC_a-2", "CCGAGC_a-3", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "GACATG_a-3","CGGAG_a-3", "CTGCAG_a-4", "GATATC_a-1", "GAGGAG_a-4","GCGATC_a-3", "TTCGAA_a-5")
+# motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
 
+motifs = c("CCGCGG_m-1", "AGAGC_a-2", "CCGAGC_a-3", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "GACATG_a-3","CGGAG_a-3", "CTGCAG_a-4", "GATATC_a-1", "GAGGAG_a-4","GCGATC_a-3", "TTCGAA_a-5")
+
+bins = c("bin.1.257", "bin.1.84")
+
+
+bins_panel = c(rep("bin.1.257", 18*14), rep("bin.1.257", 18*23))
+  #panel=c(rep("Group 1",16*12),rep("Group 2", 12*12), rep("Group 3", 3*12)))
 bins = c("bin.1.257", "bin.1.84")
 
 
@@ -246,6 +262,11 @@ bins_q <- quality_a %>%
 
 
 
+
+
+make_plot <- function(bin2see) {
+  data <- binary_comparison_all %>% filter(sample == "AD") %>% 
+    filter(bin == bin2see) %>%
 make_plot <- function(bin2see) {
   data <- binary_comparison_all %>% filter(sample == "AD") %>% 
     filter(bin == bin2see) %>%
@@ -260,6 +281,8 @@ make_plot <- function(bin2see) {
       )
     ) %>%
     filter(motif_mod %in% motifs)
+  
+  bin_stats = data$bin[1]
   
   bin_stats = data$bin[1]
   
@@ -288,6 +311,7 @@ make_plot <- function(bin2see) {
   
     contamination_plot <- contamination_plot +
       geom_tile(aes(fill = mean), linewidth = 0.2, color = "gray20")
+      geom_tile(aes(fill = mean), linewidth = 0.2, color = "gray20")
   
   
   contamination_plot <- contamination_plot +
@@ -310,14 +334,27 @@ make_plot <- function(bin2see) {
       legend.title = element_text(size = 5),
       legend.text = element_text(size = 5),
       legend.key.size = unit(0.3, 'cm'),
+      legend.position = "none",
+      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
+      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
+      plot.subtitle = element_text(size = 6),
+      plot.title = element_text(size = 7),
+      strip.text = element_text(size = 6),
+      legend.title = element_text(size = 5),
+      legend.text = element_text(size = 5),
+      legend.key.size = unit(0.3, 'cm'),
       panel.grid.minor = element_blank(),  # Remove minor gridlines
       panel.background = element_blank(),   # Remove panel background,
+      plot.background = element_blank(),
       plot.background = element_blank(),
     ) +
     labs(
       x = NULL,
+      x = NULL,
       y = "",
       fill = "Methylation degree",
+      color = "",
+      #subtitle = bin_stats
       color = "",
       #subtitle = bin_stats
     ) +
@@ -368,8 +405,11 @@ save(contamination_plt, plots_contamination_data, file = "../RData/Contamination
 
 # write_delim(gc_df_a, "../data/anaerobic_digestor/gc_content.tsv", delim = "\t")
 gc_df_a <- fread("../data/anaerobic_digestor/gc_content.tsv")
+# write_delim(gc_df_a, "../data/anaerobic_digestor/gc_content.tsv", delim = "\t")
+gc_df_a <- fread("../data/anaerobic_digestor/gc_content.tsv")
 
 # gc_df_fe <- calculateGCContent("../data/fecal/mmlong2_lite/results/mmlong2_lite_assembly.fasta")
+# write_delim(gc_df_fe, "../data/fecal/gc_content.tsv", delim = "\t")
 # write_delim(gc_df_fe, "../data/fecal/gc_content.tsv", delim = "\t")
 ```
 

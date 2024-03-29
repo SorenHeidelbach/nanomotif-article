@@ -23,11 +23,15 @@ E.coli_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/
 Geo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/MTase_assignment_table.tsv")
 M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
 Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
+M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
+Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
 ```
 
 ```{r, message=FALSE}
 E.coli_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/e_coli_K12/mtase_linker/nanomotif_assignment_table.tsv")
 Geo_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/nanomotif_assignment_table.tsv")
+M.Ruber_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/nanomotif_assignment_table.tsv")
+Zymo_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")
 M.Ruber_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/nanomotif_assignment_table.tsv")
 Zymo_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")
 ```
@@ -52,10 +56,12 @@ TMAT_bin_species_dic <- c("bin.c1" = "Pseudomonas aeruginosa",
 
 TMAT <- TMAT %>%
   mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
+  mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
   filter(!is.na(bin))
 
 TNAT <- TNAT %>%
   mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
+  filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & linked != FALSE)) %>% #filter ambiguous motifs 
   filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & linked != FALSE)) %>% #filter ambiguous motifs 
   mutate(sample = "monocultures") 
   
@@ -78,6 +84,7 @@ MTase_count_df <- TMAT %>%
   summarize(
     `MTase_count` = n(),
     `linked_count_MTase` = sum(!is.na(`detected_motif`))
+    `linked_count_MTase` = sum(!is.na(`detected_motif`))
   )
 
 # Group by 'bin name' and summarize
@@ -85,6 +92,7 @@ nanomotif_count_df <- TNAT %>%
   group_by(`bin`) %>%
   summarize(
     `motif_count` = n(),
+    `linked_count_motif` = sum(linked)
     `linked_count_motif` = sum(linked)
   )
 
@@ -96,6 +104,9 @@ TMAT_count_df <- merge(MTase_count_df, nanomotif_count_df, by = 'bin', all = TRU
 TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,linked_count_MTase, motif_count, linked_count_motif), names_to = "count_type", values_to = "counts") %>%
   filter(count_type != 	"linked_count_MTase") %>%
   mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "linked_count_motif")))
+TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,linked_count_MTase, motif_count, linked_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"linked_count_MTase") %>%
+  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "linked_count_motif")))
 ```
 
 ### Barplot
@@ -104,6 +115,9 @@ TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,linked_co
 mono_count_plot <- ggplot(TMAT_count_df_long, aes(x = as.factor(bin), y = counts, fill = count_type)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +
   scale_fill_manual(
+    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "linked_count_motif" = "orange"),
+    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "linked_count_motif" = "Linked motifs"),
+    breaks = c("MTase_count", "motif_count", "linked_count_motif")) + 
     values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "linked_count_motif" = "orange"),
     labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "linked_count_motif" = "Linked motifs"),
     breaks = c("MTase_count", "motif_count", "linked_count_motif")) + 
@@ -228,6 +242,7 @@ sfecal_count_df <- merge(sfecal_MTase_count_df, sfecal_nanomotif_count_df, by = 
 sfecal_count_df_long <- pivot_longer(sfecal_count_df, cols = c(MTase_count, assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
   filter(count_type != 	"assigned_count_MTase") %>%
   mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif"))) %>%
+  mutate(bin = sub("^[^\\.]*\\.", "", bin))
   mutate(bin = sub("^[^\\.]*\\.", "", bin))
 ```
 
