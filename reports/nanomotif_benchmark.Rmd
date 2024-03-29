@@ -456,7 +456,7 @@ combined_benchmark[
 hm_combined <- ggplot(combined_benchmark) + 
   aes(x =n_motif_factor, y = coverage_factor) + 
   geom_tile(aes(fill = recall), color = "black") + 
-  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
+  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6, labels = scales::percent) +
   facet_grid(tool ~motif_markdown, scale = "free_x")+
   geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%")), size=1) +
   theme_minimal() +

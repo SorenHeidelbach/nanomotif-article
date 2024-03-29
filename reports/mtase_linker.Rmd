@@ -9,7 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ```{r}
 library(readr)
 library(tidyverse)
@@ -22,19 +21,19 @@ library(patchwork)
 ```{r, echo = FALSE, message=FALSE}
 E.coli_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/e_coli_K12/mtase_linker/MTase_assignment_table.tsv")
 Geo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/MTase_assignment_table.tsv")
-M.Ruber_MAT <- read_tsv("/projects/
-dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
-Zymo_MAT <- read_tsv("/projects/
-dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
+M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
+Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
+M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
+Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
 ```
 
 ```{r, message=FALSE}
 E.coli_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/e_coli_K12/mtase_linker/nanomotif_assignment_table.tsv")
 Geo_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/nanomotif_assignment_table.tsv")
-M.Ruber_NAT <- read_tsv("/projects/
-dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/nanomotif_assignment_table.tsv")
-Zymo_NAT <- read_tsv("/projects/
-dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")
+M.Ruber_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/nanomotif_assignment_table.tsv")
+Zymo_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")
+M.Ruber_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/nanomotif_assignment_table.tsv")
+Zymo_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/nanomotif_assignment_table.tsv")
 ```
 
 ### Combining tables
@@ -56,16 +55,26 @@ TMAT_bin_species_dic <- c("bin.c1" = "Pseudomonas aeruginosa",
                           )
 
 TMAT <- TMAT %>%
-  mutate(`bin name` = recode(`bin name`, !!!TMAT_bin_species_dic)) %>%
-  mutate(bin = `bin name`) %>%
+  mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
+  mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
   filter(!is.na(bin))
 
 TNAT <- TNAT %>%
   mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
-  filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & assigned != FALSE)) %>% #filter ambiguous motifs 
+  filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & linked != FALSE)) %>% #filter ambiguous motifs 
+  filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & linked != FALSE)) %>% #filter ambiguous motifs 
   mutate(sample = "monocultures") 
   
 ```
+
+
+### Counting number of MTases in RM-system
+```{r}
+TMAT_RM <- TMAT %>% 
+  filter(RM_system == TRUE)
+```
+
+
 
 ### Counting number of genes and motifs in each genome.
 ```{r}
@@ -74,7 +83,8 @@ MTase_count_df <- TMAT %>%
   group_by(bin) %>%
   summarize(
     `MTase_count` = n(),
-    `assigned_count_MTase` = sum(!is.na(`detected_motif`))
+    `linked_count_MTase` = sum(!is.na(`detected_motif`))
+    `linked_count_MTase` = sum(!is.na(`detected_motif`))
   )
 
 # Group by 'bin name' and summarize
@@ -82,7 +92,8 @@ nanomotif_count_df <- TNAT %>%
   group_by(`bin`) %>%
   summarize(
     `motif_count` = n(),
-    `assigned_count_motif` = sum(assigned)
+    `linked_count_motif` = sum(linked)
+    `linked_count_motif` = sum(linked)
   )
 
 # Merge MTase and motif counts into one dataframe 
@@ -90,9 +101,12 @@ TMAT_count_df <- merge(MTase_count_df, nanomotif_count_df, by = 'bin', all = TRU
   arrange(desc(MTase_count)) %>%
   mutate(bin = factor(bin, levels = unique(bin)))
 
-TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
-  filter(count_type != 	"assigned_count_MTase") %>%
-  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif")))
+TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,linked_count_MTase, motif_count, linked_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"linked_count_MTase") %>%
+  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "linked_count_motif")))
+TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,linked_count_MTase, motif_count, linked_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"linked_count_MTase") %>%
+  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "linked_count_motif")))
 ```
 
 ### Barplot
@@ -101,9 +115,12 @@ TMAT_count_df_long <- pivot_longer(TMAT_count_df, cols = c(MTase_count,assigned_
 mono_count_plot <- ggplot(TMAT_count_df_long, aes(x = as.factor(bin), y = counts, fill = count_type)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +
   scale_fill_manual(
-    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "assigned_count_motif" = "orange"),
-    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "assigned_count_motif" = "Assigned motifs"),
-    breaks = c("MTase_count", "motif_count", "assigned_count_motif")) + 
+    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "linked_count_motif" = "orange"),
+    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "linked_count_motif" = "Linked motifs"),
+    breaks = c("MTase_count", "motif_count", "linked_count_motif")) + 
+    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "linked_count_motif" = "orange"),
+    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "linked_count_motif" = "Linked motifs"),
+    breaks = c("MTase_count", "motif_count", "linked_count_motif")) + 
   labs(title = "Monocultures", x = NULL, y = "Count", fill = "Count Type") +
   theme_minimal() +
   scale_y_continuous(breaks = seq(0, 11, by = 2), limits = c(0, 11)) +
@@ -169,10 +186,31 @@ dev.off()
 
 ### Loading MTase-Linker tables
 ```{r}
-sfecal_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/PaPr00000216MP/mtase_linker/MTase_assignment_table.tsv")
-sfecal_NAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/PaPr00000216MP/mtase_linker/nanomotif_assignment_table.tsv") %>%
-  mutate(sample = "sfecal")
+sfecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/PaPr00000216MP_nm_0.1.19/mtase_linker/MTase_assignment_table.tsv") %>%
+  filter(!(bin %in% c(
+"NP-PaPr00000216MP.bin.2.1",	
+"NP-PaPr00000216MP.bin.2.2",	
+"NP-PaPr00000216MP.bin.2.3",	
+"NP-PaPr00000216MP.bin.3.1",	
+"NP-PaPr00000216MP.bin.3.9",	
+"NP-PaPr00000216MP.bin.4.1")))
+sfecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/PaPr00000216MP_nm_0.1.19/mtase_linker/nanomotif_assignment_table.tsv") %>%
+  mutate(sample = "sfecal") %>%
+  filter(!(bin %in% c(
+"NP-PaPr00000216MP.bin.2.1",
+"NP-PaPr00000216MP.bin.2.2",	
+"NP-PaPr00000216MP.bin.2.3",	
+"NP-PaPr00000216MP.bin.3.1",	
+"NP-PaPr00000216MP.bin.3.9",	
+"NP-PaPr00000216MP.bin.4.1")))
 ```
+
+### Counting number of MTases in RM-system
+```{r}
+sfecal_MAT_RM <- sfecal_MAT %>% 
+  filter(RM_system == TRUE)
+```
+
 
 ### Counting number of genes and motifs in each genome.
 ```{r}
@@ -204,8 +242,8 @@ sfecal_count_df <- merge(sfecal_MTase_count_df, sfecal_nanomotif_count_df, by = 
 sfecal_count_df_long <- pivot_longer(sfecal_count_df, cols = c(MTase_count, assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
   filter(count_type != 	"assigned_count_MTase") %>%
   mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif"))) %>%
-  mutate(bin = sub("^[^\\.]*\\.", "", bin)) %>%
-  filter(!(bin %in% c("bin.2.1", "bin.2.2")))
+  mutate(bin = sub("^[^\\.]*\\.", "", bin))
+  mutate(bin = sub("^[^\\.]*\\.", "", bin))
 ```
 
 
@@ -248,3 +286,64 @@ wrap_plots(mono_count_plot, sfecal_count_plot,
            nrow = 2, ncol = 1, widths = c(1, 1))
 dev.off()
 ```
+
+
+# Complex samples
+
+
+```{r}
+fecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/fecal2/mtase_linker/MTase_assignment_table.tsv")
+fecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/fecal2/mtase_linker/nanomotif_assignment_table.tsv")
+fecal_assembly_sum <- read_tsv("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/mmlong2_lite/results/mmlong2_lite_bins.tsv")
+
+AD_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/AD/mtase_linker/MTase_assignment_table.tsv")
+AD_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/AD/mtase_linker/nanomotif_assignment_table.tsv")
+AD_assembly_sum <- read_tsv("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/AD/mmlong2_lite/results/mmlong2_lite_bins.tsv")
+```
+
+```{r}
+### Fecal2 ###
+# Filter and select bins
+fecal_HQ_bins <- fecal_assembly_sum %>%
+  filter(Completeness > 90 & Contamination < 5) %>%
+  select(bin)
+
+# Assuming fecal_MAT is a dataframe and you want to check if each 'bin name' in it is in the 'bin' column of fecal_HQ_bins
+fecal_MAT_HQ <- fecal_MAT %>%
+  filter(`bin` %in% fecal_HQ_bins$bin) %>%
+  mutate(sample = "fecal2")
+
+fecal_NAT_HQ <- fecal_NAT %>%
+  filter(`bin` %in% fecal_HQ_bins$bin) %>%
+  mutate(sample = "fecal2")
+  
+
+
+### AD ####
+# Filter and select bins
+AD_HQ_bins <- AD_assembly_sum %>%
+  filter(Completeness > 90 & Contamination < 5) %>%
+  select(bin)
+
+# Assuming fecal_MAT is a dataframe and you want to check if each 'bin name' in it is in the 'bin' column of fecal_HQ_bins
+AD_MAT_HQ <- AD_MAT %>%
+  filter(`bin` %in% AD_HQ_bins$bin) %>%
+  mutate(sample = "AD") 
+
+AD_NAT_HQ <- AD_NAT %>%
+  filter(`bin` %in% AD_HQ_bins$bin) %>%
+  mutate(sample = "AD")
+```
+
+
+### Counting number of MTases in RM-system
+```{r}
+fecal_MAT_HQ_RM <- fecal_MAT_HQ %>% 
+  filter(RM_system == TRUE)
+
+AD_MAT_HQ_RM <- AD_MAT_HQ %>% 
+  filter(RM_system == TRUE)
+```
+
+```
+
