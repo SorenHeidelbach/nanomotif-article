@@ -61,6 +61,15 @@ TNAT <- TNAT %>%
   
 ```
 
+
+### Counting number of MTases in RM-system
+```{r}
+TMAT_RM <- TMAT %>% 
+  filter(RM_system == TRUE)
+```
+
+
+
 ### Counting number of genes and motifs in each genome.
 ```{r}
 # Group by 'bin name' and summarize
@@ -182,6 +191,13 @@ sfecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modificatio
 "NP-PaPr00000216MP.bin.4.1")))
 ```
 
+### Counting number of MTases in RM-system
+```{r}
+sfecal_MAT_RM <- sfecal_MAT %>% 
+  filter(RM_system == TRUE)
+```
+
+
 ### Counting number of genes and motifs in each genome.
 ```{r}
 ### Sfecal ###
@@ -302,5 +318,17 @@ AD_MAT_HQ <- AD_MAT %>%
 AD_NAT_HQ <- AD_NAT %>%
   filter(`bin` %in% AD_HQ_bins$bin) %>%
   mutate(sample = "AD")
+```
+
+
+### Counting number of MTases in RM-system
+```{r}
+fecal_MAT_HQ_RM <- fecal_MAT_HQ %>% 
+  filter(RM_system == TRUE)
+
+AD_MAT_HQ_RM <- AD_MAT_HQ %>% 
+  filter(RM_system == TRUE)
+```
+
 ```
 

@@ -27,12 +27,14 @@ Do not flatten labelling or scale/error bars onto images – uneditable or low-r
 library(tidyverse)
 library(patchwork)
 library(grid)
-
+library(scales)
+library(gridExtra)
+library(gtable)
 ```
 
 # Figure panel 1
 
-### Loading plot for figure panel 1
+### Loading plots for figure panel 1
 ```{r}
 load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/benchmark_heatmap_bin_consensus.Rdata")
 load("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/benchmark_heatmap_both.Rdata")
@@ -50,7 +52,9 @@ pacman::p_load(
   "pheatmap",
   "purrr",
   "here",
-  "ggnewscale"
+  "ggnewscale",
+  "ggpubr",
+  "seqinr"
 )
 source("../src/constants.R")
 source("../src/themes.R")
@@ -260,6 +264,15 @@ monoculture <- rbind(
   )
 ]
 
+monoculture <- monoculture %>%
+  mutate(
+    motif_markdown = if_else(
+      str_detect(motif_markdown, "N{3,}"), # Check for sequences of three or more 'N's
+      # Replace the sequence of 'N's with the desired format
+      str_replace_all(motif_markdown, "N{3,}", function(x) paste0("(N)<sub>", str_length(x), "</sub>")),
+      motif_markdown # Leave the motif_markdown column unchanged if the condition is not met
+    )
+  )
 
 
 ```
@@ -310,9 +323,8 @@ mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
   geom_tile(data= plot_data, aes(fill = mean), linewidth = 0.1, color = "gray20", alpha = 0) +
   scale_fill_steps(
     limits = c(0, 1), low = "white", high = "gray20",
-    labels = scales::percent, n.breaks = 6, guide = guide_legend(title.position = "top", direction = "horizontal", override.aes = list(alpha = 1))) +
-    #guides(fill = guide_legend(title.position = "top", direction = "horizontal", title.hjust = 0.5)) +
-  geom_text(data=plot_data[(n_mod + n_nomod - 1)==0], label = ".", hjust=0.5, vjust=0, size=3) +
+    labels = scales::percent, n.breaks = 6) +
+  geom_text(data=plot_data[(n_mod + n_nomod - 1)==0], label = "·", hjust=0.5, vjust=0.5, size=3) +
   geom_text(data=plot_data[linked_mtase == TRUE], label = "+", hjust=0.5, vjust=0.5, size=2, color = "orange") +
   coord_fixed(ratio= 1, clip="off") +
   theme(
@@ -330,8 +342,8 @@ mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
   ) +
   geom_text(aes(color = "No motif observations"), alpha = 0, label ="") +
   geom_text(aes(color = "Linked MTase"), alpha=0, label = "") +
-  scale_color_manual(name = NULL, values = c("No motif observations" = "black", "Assigned MTase" = "orange")) +
-  guides(color = guide_legend(direction = "vertical", override.aes = list(alpha = 1, label = c("+", "."), size = c(2, 3),  fill = c("orange", "black")))) # Adjust this line as needed
+  scale_color_manual(name = NULL, values = c("No motif observations" = "black", "Linked MTase" = "orange")) +
+  guides(color = guide_legend(direction = "vertical", override.aes = list(alpha = 1, label = c("+", "·"), size = c(2, 3)),  fill = c("orange", "black")), fill = guide_legend(title.position = "top", direction = "horizontal", override.aes = list(alpha = 1))) # Adjust this line as needed
 
 mono_and_zymo_heatmap
 ```
@@ -339,6 +351,8 @@ mono_and_zymo_heatmap
 
 
 
+
+### Adjusting theme and generating a grob object for each ggplot
 
 ```{r}
 main_theme <- theme(
@@ -353,7 +367,7 @@ main_theme <- theme(
     axis.ticks = element_line(linewidth = 0.1),
     legend.title = element_text(size = 5, family = "sans"),
     legend.text = element_text(size = 5, family = "sans"),
-    legend.key.size = unit(0.3, "cm"))
+    legend.key.size = unit(0.2, "cm"))
 
 
 
@@ -370,12 +384,17 @@ p3 <- mono_and_zymo_heatmap + main_theme + theme(legend.key.size = unit(0.2, "cm
                                                   axis.text.x = element_markdown(size = 6, family = "sans")
 )
 
-p4 <- hm_combined + main_theme + theme(legend.position = "right", 
-        legend.margin = margin(t = 0, r = -3, b = 0, l = -7, unit = "pt"))
+p4 <- hm_combined + main_theme + theme(legend.position = "bottom", 
+        legend.margin = margin(t = -3, b = 0, unit = "pt")) + guides(fill = guide_legend(title.position = "left", direction = "horizontal"))
+
+
 p2_grob <- ggplotGrob(p2)
 p3_grob <- ggplotGrob(p3)
 p4_grob <- ggplotGrob(p4)
 ```
+
+
+### Setting print layout for panel 1
 
 ```{r}
 pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_1.pdf", height = 5.51181102, width = 7.08661417, family = "sans")
@@ -391,7 +410,7 @@ layout2 <- grid.layout(nrow = 2, ncol = 2,
 
 layout3 <- grid.layout(nrow = 2, ncol = 2,
                       widths = unit(c(9, 11), "null"),
-                      heights = unit(c(18, 12), "null"), just = "left")
+                      heights = unit(c(17, 13), "null"), just = "left")
 
 layout4 <- grid.layout(nrow = 2, ncol = 2,
                       widths = unit(c(9, 11), "null"),
@@ -405,7 +424,7 @@ pushViewport(viewport(layout = layout2))
 # For p3 in the top right area
 pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 2))
 grid.draw(p3_grob)
-grid.text("b", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(3, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+#grid.text("b", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(3, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
 upViewport()  # Go back up to the layout level
 
 pushViewport(viewport(layout = layout4))
@@ -413,7 +432,7 @@ pushViewport(viewport(layout = layout4))
 # For p2 in the bottom left area
 pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 1))
 grid.draw(p2_grob)
-grid.text("c", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(2, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+#grid.text("c", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(2, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
 upViewport()
 
 pushViewport(viewport(layout = layout3))
@@ -421,7 +440,7 @@ pushViewport(viewport(layout = layout3))
 # For p4 in the bottom right area
 pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2))
 grid.draw(p4_grob)
-grid.text("d", x = unit(0, "npc") + unit(5, "mm") , y = unit(1, "npc") - unit(6, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+#grid.text("d", x = unit(0, "npc") + unit(5, "mm") , y = unit(1, "npc") - unit(6, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
 upViewport()
 
 dev.off()
@@ -431,6 +450,203 @@ dev.off()
 
 
 
+# Figure panel 2
+
+### Loading plots for figure panel 1
+
+```{r}
+load("../RData/contamination_gc_cov_data.RData")
+load("../RData/Contamination_heatmap.RData")
+load("../RData/fecal_simple_hm_w_include.RData")
+load("../RData/inclusion_gc_cov.RData")
+```
+
+```{r}
+```
+
+```{r}
+### Adjusting theme and generating a grob object for each ggplot
+
+main_theme <- theme(
+    text = element_text(family = "sans", size = 1),
+    plot.title = element_text(size = 7, family = "sans"),
+    strip.text = element_markdown(size = 5, family = "sans"),
+    strip.text.y.right = element_markdown(face = "bold", size = 5, family = "sans"),
+    axis.text.y = element_markdown(size=5, family = "sans"), # Rotate x-axis labels to 90 degrees
+    axis.text.x = element_markdown(size = 5, family = "sans"),
+    axis.title.x = element_text(size = 5, family = "sans"),
+    axis.title.y = element_text(size = 5, family = "sans"),
+    axis.ticks = element_line(linewidth = 0.1),
+    legend.title = element_text(size = 5, family = "sans"),
+    legend.text = element_text(size = 5, family = "sans"),
+    legend.key.size = unit(0.3, "cm"))
+
+
+p1 <- contamination_gc_cov_plt & main_theme & theme(legend.position = "bottom") + theme(
+                                                 legend.justification = c(1, 0),
+                                                 legend.box.just = "right",
+                                                 legend.margin = margin(t = -3, unit = "pt"))
+
+p2 <- contamination_plt & main_theme
+p2[[1]]$theme$axis.text.x <- element_blank()
+p2[[2]]$theme$legend.margin = margin(t = -3, unit = "pt")
+
+p3 <- include_plt_hm & main_theme & theme(axis.text.y = element_blank(),
+                                          axis.text.x = element_blank())
+p3[[1]]$theme$axis.text.y <- element_markdown(vjust = 0.5, hjust = 0, size = 5, family = "sans")
+
+p3[[9]]$theme$axis.text.x <- element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5, family = "sans")
+
+
+p4 <- inclusion_gc_cov & main_theme + theme(legend.position = "bottom") & theme(
+                                                 legend.justification = c(1, 0),
+                                                 legend.box.just = "right",
+                                                 legend.margin = margin(t = -3, unit = "pt"))
+
+
+p1_grob <- as_grob(p1)
+p2_grob <- as_grob(p2)
+p3_grob <- as_grob(p3)
+p4_grob <- as_grob(p4)
+
+
+tb <- data.frame(
+  row.names = c("# MAGs\n(HQ)", "# Motifs\n(HQ)", "Motifs/MAG\n(HQ)", "%MAGs w/\nmotif (HQ)", "# MTases*", "# MTases in\nRM-systems*", "Linked motifs*\n(%motifs)", "Contamination\n(#contigs (HQ))", "Contigs included\n(#contigs (MGEs))"),
+  Monocultures = c("10 (10", "31 (31)", "3 (3)", "100% (100%)", "54", "21", "24 (77%)", "-", "-"),
+  `Fecal(Simple)` = c("14 (8)", "27 (21)", "1.9 (2.5)", "85% (100%)", "58", "15", "11 (55%)", "11 (0)", "135 (92)"),
+  `Fecal(Complex)` = c("190 (97)", "245 (196)", "1.3 (2)", "56% (75%)", "605", "247", "50 (26%)", "179 (20)", "725 (324)"),
+    `Anerobic Digestor` = c("423 (230)", "667 (495)", "1.6 (2.2)", "60% (77%)", "1445", "583", "57 (12%)", "745 (119)", "3489 (899)"),
+  `HQMAGs` = c("", "", "", "", "", "","","", "") 
+)
+
+
+table_grob <- tableGrob(tb,
+                        theme = ttheme_default(
+                          core = list(fg_params = list(fontsize = 5, fontface = "plain", fontfamily = "sans")),
+                          colhead = list(fg_params = list(fontsize = 5, fontface = "bold", fontfamily = "sans")),
+                          rowhead = list(fg_params = list(fontsize = 5, fontface = "italic", fontfamily = "sans"))
+                          #hsline = grid::gpar(col="grey", lwd=1),
+                          #vsline = grid::gpar(col="grey", lwd=1),
+                          #bgcolor = list(odd = "grey95", even = "grey90")
+                        ))
+
+ttb <- t(tb)
+
+colnames(ttb) <- c("# MAGs\n(HQ)", "# Motifs\n(HQ)", "Motifs/MAG\n(HQ)", "%MAGs w/\nmotif (HQ)", "# MTases*", "# MTases in\nRM-systems*", "Linked motifs*\n(%motifs)", "Contamination\n(#contigs (HQ))", "Contigs included\n(#contigs (MGEs))")
+
+rownames(ttb) <- c("Monocultures", "Fecal Simples", "Fecal Complex", "Anaerobic Digestor", "*in HQ-MAGs")
+
+tt1 <- ttheme_minimal(core = list(fg_params = list(fontsize = 5, fontface = "plain", fontfamily = "sans"), bg_params = list(fill = "white")),
+                      colhead = list(fg_params = list(fontsize = 5, fontface = "bold", fontfamily = "sans"), border = TRUE),
+                      rowhead = list(fg_params = list(fontsize = 5, fontface = "italic", fontfamily = "sans", hjust = 0, x = 0)))
+
+
+ttable_grob <- tableGrob(ttb, theme = tt1) 
+
+
+ttable_grob <- gtable_add_grob(ttable_grob,
+        grobs = segmentsGrob( # line across the bottom
+            x0 = unit(0,"npc"),
+            y0 = unit(1,"npc"),
+            x1 = unit(1,"npc"),
+            y1 = unit(1,"npc"),
+            gp = gpar(lwd = 2.0)),
+        t = 2, b = 2, l = 1, r = ncol(ttable_grob))
+
+ttable_grob <- gtable_add_grob(ttable_grob,
+        grobs = segmentsGrob( # line across the bottom
+            x0 = unit(0,"npc"),
+            y0 = unit(1,"npc"),
+            x1 = unit(1,"npc"),
+            y1 = unit(1,"npc"),
+            gp = gpar(lwd = 2.0)),
+        t = 1, b = 1, l = 1, r = ncol(ttable_grob))
+
+ttable_grob <- gtable_add_grob(ttable_grob,
+        grobs = segmentsGrob( # line across the bottom
+            x0 = unit(0,"npc"),
+            y0 = unit(0,"npc"),
+            x1 = unit(1,"npc"),
+            y1 = unit(0,"npc"),
+            gp = gpar(lwd = 2.0)),
+        t = 5, b = 5, l = 1, r = ncol(ttable_grob))
+
+
+#grid.newpage()
+
+#grid.draw(ttable_grob)
+```
+
+```{r}
+layout1 <- grid.layout(nrow = 2, ncol = 2,
+                      widths = unit(c(1, 2), "null"),
+                      heights = unit(c(1, 2), "null"))
+
+layout2 <- grid.layout(nrow = 2, ncol = 2,
+                      widths = unit(c(45, 60), "null"),
+                      heights = unit(c(4, 1), "null"))
+
+layout3 <- grid.layout(nrow = 3, ncol = 2,
+                      widths = unit(c(1.05, 2.2), "null"),
+                      heights = unit(c(1.18, 1.9, 0.72), "null"))
+
+layout4 <- grid.layout(nrow = 4, ncol = 3,
+                      widths = unit(c(1.4, 1.04, 1.06), "null"),
+                      heights = unit(c(0.03, 1.09, 1.41, 1), "null"))
+
+layout5 <- grid.layout(nrow = 4, ncol = 3,
+                      widths = unit(c(1.4, 1.1, 1), "null"),
+                      heights = unit(c(0.03, 1.09, 1.41, 1), "null"))
+
+layout6 <- grid.layout(nrow = 2, ncol = 1,
+                      widths = unit(c(1.1, 0.9), "null"),
+                      heights = unit(c(4, 1), "null"))
+
+```
+
+```{r}
+pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_2.pdf", height = 7.08661417, width = 7.08661417, family = "sans")
+
+grid.newpage()
+
+
+pushViewport(viewport(layout = layout3))
+
+pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2))
+grid.draw(p3_grob)
+upViewport()
+
+
+pushViewport(viewport(layout = layout2))
+
+# For p3 in the top right area
+pushViewport(viewport(layout.pos.row = 1, layout.pos.col = 1))
+grid.draw(p2_grob)
+#grid.text("b", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(3, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
+upViewport()
+
+pushViewport(viewport(layout = layout4))
+
+pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2))
+grid.draw(p1_grob)
+upViewport()
+ 
+pushViewport(viewport(layout = layout5))
+
+pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 3))
+grid.draw(p4_grob)
+upViewport()
+
+
+pushViewport(viewport(layout = layout6))
+
+pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 1))
+grid.draw(ttable_grob)
+upViewport()
+
+
+dev.off()
+```
 
 
 ```{r}
@@ -454,5 +670,9 @@ plot(layout)
 
 # Apply it to a patchwork
 p1 + p2 + p3 + plot_layout(design = layout)
+```
+
+```{r}
+
 ```
 

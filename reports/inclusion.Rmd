@@ -366,6 +366,9 @@ BIN_CONSENSUS_MOTIFS <- bin_consensus %>%
   ) %>% 
   filter(n_motifs > 500) %>% 
   mutate(
+    ns = str_extract(motif, "NNN*"),
+    ns = str_length(ns),
+    motif = str_replace(motif, "NNN*", paste0("(N)<sub>",ns,"</sub>")),
     motif_axis = paste0(
         str_sub(motif, 1, mod_position),
         "<strong>",
@@ -390,6 +393,9 @@ contig_methylation <- motifs_scored %>%
   mutate(
     n_motifs = n_mod + n_nomod -1,
     mean = n_mod / n_motifs,
+    ns = str_extract(motif, "NNN*"),
+    ns = str_length(ns),
+    motif = str_replace(motif, "NNN*", paste0("(N)<sub>",ns,"</sub>")),
     motif_axis = paste0(
         str_sub(motif, 1, mod_position),
         "<strong>",
@@ -410,6 +416,7 @@ contig_methylation <- motifs_scored %>%
     )
   ) %>% 
   left_join(quality %>% select(bin, Completeness, Contamination))
+
 
 contig_methylation_matrix <- contig_methylation %>% 
   filter(motif_axis %in% BIN_CONSENSUS_MOTIFS) %>% 
@@ -445,9 +452,11 @@ make_plot <- function(facet, ratio) {
         bin == "Unbinned", 
         "Unbinned",
         paste0(
+          #'<span style="color: #808080;">',
           bin, 
           "\nComp. ", Completeness, 
-          "\nCont. ", Contamination
+          "\nCont. ", Contamination#,
+          #'</span>'
       ))
     )
   
@@ -462,12 +471,12 @@ make_plot <- function(facet, ratio) {
     aes(x = motif_axis, y = factor(contig, levels = y_levels$contig))
   
   plot <- plot +
-    geom_tile(aes(fill = mean), linewidth = 0.0, color = "gray20")
+    geom_tile(aes(fill = mean))#, linewidth = 0.0, color = "gray20")
   
   plot <- plot +
     scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
     
-    geom_text(data = filter(data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 3) +
+    geom_text(data = filter(data, is.na(mean)), label = "·", hjust = 0.5, vjust = 0.4, size = 3) +
     
   
     geom_text(aes(color = "No motif observations"), label = "", alpha = 0) +
@@ -541,6 +550,7 @@ include_plt_hm <- include_plt_hm_data %>%
   pull(plt) %>% 
   patchwork::wrap_plots(ncol = 1)
 
+include_plt_hm
 
 save(include_plt_hm,include_plt_hm_data, file = "../RData/fecal_simple_hm_w_include.RData")
 
@@ -587,8 +597,8 @@ bin_label <- mm_all %>%
 mm_bin <- mm_all %>% filter(bin == "bin.1.1", length > 12400) %>% mutate(mge = ifelse(is.na(mge), "bin.1.1",mge))
 mm_bin_mge <- mm_all %>% filter(bin == "bin.1.1", length > 12400, !is.na(mge))
 
-labels <- c("250k", "500k", "750k", "1000k")
-breaks <- c(250, 500, 750, 1000) * 1000
+labels <- c("250k", "1000k")
+breaks <- c(250, 1000) * 1000
 
 tab20_colors <- c("#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", 
                   "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", 
@@ -598,26 +608,27 @@ tab20_colors <- c("#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c",
 inclusion_gc_cov <- mm_all %>% 
   filter(!str_detect(bin_contig, "unbinned")) %>% 
 ggplot(aes(y = `1_cov.bam`, x = gc * 100)) +
-  geom_point(aes(size = length, color = bin), alpha = 0.6) + 
-  ggrepel::geom_label_repel(data = bin_label, aes(label = bin, fill = bin), alpha = 0.7, box.padding = 0.5, size = 3) +
-  geom_point(data = mm_bin_mge, aes(shape = mge, size = length), alpha = 0.7, color = "darkred") +
+  geom_point(aes(size = length, color = bin), alpha = 0.4, pch = 16) + 
+  ggrepel::geom_label_repel(data = bin_label %>% filter(bin == 'bin.1.1'), aes(label = bin, fill = bin), alpha = 0.7, box.padding = 2, size = 1.5) +
+  geom_point(data = mm_bin_mge, aes(shape = mge, size = length), alpha = 0.7, color = c("#f09205", "#69B3A2", "#69B3A2")) +
   labs(
     y = "Coverage",
-    x = "GC (%)"
+    x = "GC (%)",
+    title = "Simple Fecal"
   ) +
   scale_y_log10() +
-  scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels) + #, breaks = breaks, labels = labels
+  scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels, range = c(0.1, 5)) + #, breaks = breaks, labels = labels
   # scale_color_manual(name = "", values = c("#404080",  "#69B3A2",  "#f09205")) +
   scale_color_manual(name = "", values = tab20_colors) +
-  scale_fill_manual(name = "", values = tab20_colors) +
+  scale_fill_manual(name = "", values = "white") +
+  scale_shape_manual(values = c(15, 17)) +
   base_plot_theme() +
   theme(
     legend.position = "bottom",
-    aspect.ratio = 1,
     axis.title = element_text(size = 7),
     axis.text = element_text(size = 5),
   ) +
-  guides(fill = "none", color = "none")
+  guides(fill = "none", color = 'none', shape = guide_legend(title = "MGEs in bin.1.1", title.position = "top", title.hjust = 0.1, override.aes = list(alpha = 1, color = c( "#69B3A2", "#f09205"), pch = c(15, 17), labels = c("Plasmid", "Virus"))), size = guide_legend(title.position = "top", title.hjust = 0.1, override.aes = list(color = "gray70")))
 
 inclusion_gc_cov
 
