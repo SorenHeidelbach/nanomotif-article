@@ -40,6 +40,39 @@ load_motifs_scored <- function(path){
   motifs_scored <- fread(path)
   return(motifs_scored)
 }
-
+create_methylation_features <- function(bin_motifs, motifs_scored) {
+  
+}
 ```
+
+
+
+```{r}
+fecal_bin_motif <- load_bin_motif("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/nanomotif/mmlong2/bin-motifs.tsv")
+fecal_bin_motif[
+  , moitf_uniq := paste0(motif, "_", mod_position, "_", mod_type)
+]
+bin_motifs_list <- fecal_bin_motif$moitf_uniq
+fecal_motifs_scored <- load_motifs_scored("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/nanomotif/mmlong2/motifs-scored.tsv")[
+  , moitf_uniq := paste0(motif, "_", mod_position, "_", mod_type)
+][moitf_uniq %in% bin_motifs_list]
+
+
+dcast(contig, moitf_uniq, )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -35,15 +35,19 @@ benchmark_heatmap <- function(data) {
   hm <- ggplot(data) + 
   aes(x =n_motif_factor, y = coverage_factor) + 
   geom_tile(aes(fill = recall), color = "black") + 
-  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
-  facet_wrap(~motif, ncol = 2) + 
-  geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%"))) +
+  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6, labels = scales::percent) +
+  facet_wrap(~motif_markdown, ncol = 2)+
+  geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%")), size=3) +
   theme_minimal() +
+  theme(
+    strip.text.x = element_markdown(),
+    strip.text.y.right = element_markdown(face = "bold", size = 20)
+  ) +
   coord_fixed(ratio= 1, clip="off") +
   labs(
-    x = "Number of motif occourances",
+    x = "Number of motif occurrences",
     y = "Read coverage",
-    title = unique(data$sample)
+    fill = "Motif\nRecall"
   )
   return(hm) 
 }
@@ -96,6 +100,17 @@ benchmark <- data.table(files)[
     , n_motif_factor := factor(n_motif, levels = unique(sort(n_motif, decreasing = TRUE)))
   ][
     , motif := unlist(lapply(motif, regex_to_iupac))
+  ][
+    , motif_markdown := paste0(
+        str_sub(motif, 1, position),
+        "<strong>",
+        str_sub(motif, position+1, position+1),
+        "<sub><sup>",
+        map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+        "</sup></sub>",
+        "</strong>",
+        str_sub(motif, position+2, -1)
+    )
   ]
 
 ```
@@ -105,25 +120,46 @@ benchmark <- data.table(files)[
 ```{r}
 plot_sample = "Geobacillus_3"
 plot_data = benchmark[sample == plot_sample][
-  , motif := factor(motif, levels = c("GATC", "GRNGAAGY", "ACCCA", "CCAAAT"))
+  , motif_markdown := factor(motif_markdown, levels = c("G<strong>A<sub><sup>m6</sup></sub></strong>TC", "GRNGA<strong>A<sub><sup>m6</sup></sub></strong>GY", "ACCC<strong>A<sub><sup>m6</sup></sub></strong>", "CCAA<strong>A<sub><sup>m6</sup></sub></strong>T"))
 ]
-hm_geo <- benchmark_heatmap(plot_data)
+sample_title <- "*P. thermoglucosidasius*"
+hm_geo <- benchmark_heatmap(plot_data) +
+  labs(
+    title = sample_title
+  ) +
+  theme(
+    plot.title = element_markdown()
+  )
 plot_height <- 0.2 + (3 * ((length(unique(benchmark[sample == plot_sample]$motif)) - 1) %/% 2 +1))
 ggsave("../figures/geobacillus_benchmark_heatmap.png", hm_geo, bg = "white", width = 7, height = plot_height)
 
 
 plot_sample = "E.coli_K12_stat_3"
+sample_title <- "*E. coli* K12"
 hm_ec <- benchmark_heatmap(benchmark[sample == plot_sample][
-  , motif := factor(motif, levels = c("GATC", "AACNNNNNNGTGC", "CCWGG", "GCACNNNNNNGTT"))
-])
+  , motif_markdown := factor(motif_markdown, levels = c("G<strong>A<sub><sup>m6</sup></sub></strong>TC", "A<strong>A<sub><sup>m6</sup></sub></strong>CNNNNNNGTGC", "C<strong>C<sub><sup>m5</sup></sub></strong>WGG", "GC<strong>A<sub><sup>m6</sup></sub></strong>CNNNNNNGTT"))
+]) +
+  labs(
+    title = sample_title
+  ) +
+  theme(
+    plot.title = element_markdown()
+  )
 plot_height <- 0.2 + (3 * ((length(unique(benchmark[sample == plot_sample]$motif)) - 1) %/% 2 +1))
 ggsave("../figures/ecoli_benchmark_heatmap.png", hm_ec, bg = "white", width = 7, height = plot_height)
 
 
 plot_sample = "M.ruber_1"
+sample_title <- "*M. ruber*"
 hm_mr <- benchmark_heatmap(benchmark[sample ==plot_sample][
-  , motif := factor(motif, levels = c("GATC", "GGGAGC", "AATT", "TTAA", "CCANNNNNNTGCC", "GGCANNNNNNTGG", "CTCGAG"))
-])
+  , motif_markdown := factor(motif_markdown, levels = c("G<strong>A<sub><sup>m6</sup></sub></strong>TC", "GGG<strong>A<sub><sup>m6</sup></sub></strong>GC", "A<strong>A<sub><sup>m6</sup></sub></strong>TT", "TTA<strong>A<sub><sup>m6</sup></sub></strong>", "CC<strong>A<sub><sup>m6</sup></sub></strong>NNNNNNTGCC", "GGC<strong>A<sub><sup>m6</sup></sub></strong>NNNNNNTGG", "CTCG<strong>A<sub><sup>m6</sup></sub></strong>G"))
+]) +
+  labs(
+    title = sample_title
+  ) +
+  theme(
+    plot.title = element_markdown()
+  )
 plot_height <- 0.2 + (3 * ((length(unique(benchmark[sample == plot_sample]$motif)) - 1) %/% 2 +1))
 ggsave("../figures/mruber_benchmark_heatmap.png", hm_mr, bg = "white", width = 7, height = plot_height)
 
@@ -456,7 +492,7 @@ combined_benchmark[
 hm_combined <- ggplot(combined_benchmark) + 
   aes(x =n_motif_factor, y = coverage_factor) + 
   geom_tile(aes(fill = recall), color = "black") + 
-  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6) +
+  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6, labels = scales::percent) +
   facet_grid(tool ~motif_markdown, scale = "free_x")+
   geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%")), size=1) +
   theme_minimal() +
