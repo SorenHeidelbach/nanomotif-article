@@ -116,13 +116,29 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
   data <- df %>% 
     filter(bin %in% bin2see) %>%
     mutate(
-      length_str = paste0(round(length/1000),"kb"),
-      contig = paste(contig_bin,length_str),
+      length_str = paste0(round(length/1000, 2),"kb  "),
+      contig = paste(length_str),
       contig = case_when(
         is_contamination ~ paste0('<strong style="color: #b00d02;">', contig, '</strong>'),
         .default = paste0('<span style="color: #808080;">', contig, '</span>')
       )
+    ) %>%
+    mutate(
+      ns = str_extract(motif, "NNN*"),
+      ns = str_length(ns),
+      motif = str_replace(motif, "NNN*", paste0("(N)<sub>",ns,"</sub>")),
+      motif_axis = paste0(
+          str_sub(motif, 1, mod_position),
+          "<strong>",
+          str_sub(motif, mod_position+1, mod_position+1),
+          "<sub><sup>",
+          map(mod_type, function(x) MOD_TYPE_PRETTY[[x]]) %>%  unlist(),
+          "</sup></sub>",
+          "</strong>",
+          str_sub(motif, mod_position+2, -1)
+        )
     ) %>% 
+     
     group_by(motif_mod) %>% 
     filter(sum(methylation_binary, na.rm = TRUE) != 0) %>%
     ungroup()
@@ -140,6 +156,7 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
   plot_data <- left_join(plot_data, motif_markdown)
   
   if (!is.null(motifs)) {
+      print("not null")
       plot_data <- plot_data %>% 
         filter(motif_mod %in% motifs) 
     }
@@ -192,7 +209,7 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
       color = ""
     ) +
     guides(
-      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("●"), size = c(4)))
+      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"·"), size = c(2,10)),  direction = "vertical", order = 1)
     )
   
   contamination_plot
@@ -220,11 +237,21 @@ bin_contamination_all %>%
 
 # Anaerobic digestor
 ```{r}
-plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.1.168", motifs = NULL, annotate = T, binary = F)  
-plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.1.396", motifs = NULL, annotate = F, binary = F)  
-plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.1.84", motifs = NULL, annotate = T, binary = F) 
-plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), c("bin.1.257", "bin.1.396", "bin.1.104"), motifs = NULL, annotate = F, binary = F) 
+plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.2.97", motifs = NULL, annotate = T, binary = T)  
+plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.2.99", motifs = NULL, annotate = T, binary = T)  
+plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.3.300", motifs = NULL, annotate = T, binary = T) 
+plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.1.128", motifs = NULL, annotate = T, binary = T) 
+
+plot_methylation_profile(binary_comparison_all %>% filter(sample == "FECAL"), "bin.1.147", motifs = NULL, annotate = F, binary = F) 
 ```
+
+
+```{r}
+y <- binary_comparison_all %>% filter(sample == "AD") %>% 
+  filter(bin == "bin.3.227") %>% 
+  filter(length < 13000)
+```
+
 
 ```{r}
 # motifs = c("AGAGC_a-2", "CAAAAA_a-5", "GATC_a-1", "GTACAY_a-4", "GACAAT_a-4","GCGCT_m-1", "GGGCC_m-3", "AGGC_a-0", "CCNGG_m-1", "CCTTC_m-1", "GACATG_a-3", "GGCGCTRG_m-4", "CACATC_a-3", "CGGAG_a-3", "CGCG_m-0")
@@ -350,7 +377,7 @@ contamination_plt <- plots_contamination_data %>%
 
 
 
-save(contamination_plt, plots_contamination_data, file = "../RData/Contamination_heatmap.RData")
+# save(contamination_plt, plots_contamination_data, file = "../RData/Contamination_heatmap.RData")
   
 # height_hm <- 8
 # width_hm <- 6
@@ -374,24 +401,14 @@ gc_df_a <- fread("../data/anaerobic_digestor/gc_content.tsv")
 ```
 
 ```{r}
-sequences_a <- read.fasta(file = "../data/anaerobic_digestor/mmlong2_lite/results/mmlong2_lite_assembly.fasta") # Read the assembly file
-
-kmer_4 <- seqinr::count(seq = sequences_a[["contig_3819"]], wordsize = 4)
-kmer_4["gatc"]
-
-
-binary_comparison_all %>%  filter(contig == "bin", motif_mod == "GATC_a-1")
-
-(8778 / (19054-1399))
-```
-
-```{r}
 mm_a <- gc_df_a %>% 
   left_join(cov_a %>% rename(contig = contigName)) %>% 
   mutate(sample = "AD") %>% 
   left_join(binary_comparison_all %>% filter(sample == "AD") %>% select(contig, bin, sample, is_contamination, length) %>% distinct(contig, sample, .keep_all = TRUE)) %>% 
-  filter(length >= 10000)
+  filter(length >= 30000)
 
+
+bins = c("bin.2.97", "bin.2.99", "bin.3.227")
 mm_bin_ad <- mm_a %>% filter(bin %in% bins, sample == "AD")
 
 
@@ -419,7 +436,7 @@ ggplot(aes(y = `1_cov.bam`, x = gc * 100, size = length)) +
   # guides(size = guide_legend(title = "Fragment Length"))
 
 
-save(contamination_gc_cov_plt, file = "../RData/contamination_gc_cov_data.RData")
+# save(contamination_gc_cov_plt, file = "../RData/contamination_gc_cov_data.RData")
 
 height_hm <- 9
 width_hm <- 6
@@ -452,7 +469,7 @@ mm_all <- bind_rows(mm_a, mm_fe) %>%
 mm_bin_ad <- mm_all %>% filter(bin == "bin.1.32", sample == "AD")
 
 
-mm_all %>% 
+gc <- mm_all %>% 
   filter(bin != "bin.1.32", sample == "AD") %>% 
 ggplot(aes(x = `1_cov.bam`, y = gc * 100)) +
   geom_point(color = "gray70", alpha = 0.6) + 
@@ -470,6 +487,96 @@ ggplot(aes(x = `1_cov.bam`, y = gc * 100)) +
   )
 
 
+
+
+```
+
+
+```{r}
+bins = c("bin.2.97", "bin.2.99", "bin.3.227")
+
+c1 <- plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"),  bins[1], motifs = NULL, annotate = F, binary = F) +
+  labs(x="", subtitle = get_title(bin_contamination_qc_a, bins[1]), title = paste("Anaerobic Digester","-", bins[1]))
+c2 <- plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.2.99", motifs = NULL, annotate = F, binary = F)+
+  labs(x="", subtitle = get_title(bin_contamination_qc_a, bins[2]), title = paste("Anaerobic Digester","-", bins[2]))
+c3 <- plot_methylation_profile(binary_comparison_all %>% filter(sample == "AD"), "bin.3.227", motifs = NULL, annotate = F, binary = F)+
+  labs(x="", subtitle = get_title(bin_contamination_qc_a, bins[3]), title = paste("Anaerobic Digester","-", bins[3]))
+```
+
+
+```{r}
+
+make_gc_plot <- function(bin2see) {
+  
+  mm_scores <- gc_df_a %>% 
+    left_join(cov_a %>% rename(contig = contigName)) %>% 
+    mutate(sample = "AD") %>% 
+    left_join(binary_comparison_all %>% filter(sample == "AD") %>% select(contig, bin, sample, is_contamination, length) %>%
+    distinct(contig, sample, .keep_all = TRUE))
+  
+  mm_bin_ad <- mm_scores %>% filter(bin == bin2see, sample == "AD")
+  mm_a <- mm_scores %>% 
+    filter(length >= 50000)
+  
+  
+  
+  
+  # Define breaks at exact powers of 10
+  breaks <- c(10^(4:6))
+  labels <- c(expression(10^4), expression(10^5), expression(10^6))
+  
+  contamination_gc_cov_plt <- mm_a %>% 
+    filter(!bin %in% bins) %>% 
+  ggplot(aes(y = `1_cov.bam`, x = gc * 100, size = length)) +
+    geom_point(color = "gray70", alpha = 0.6) + 
+    geom_point(data = mm_bin_ad %>% rename(Contamination = is_contamination), aes(color = Contamination), alpha = 0.7) +
+    coord_cartesian(ylim = c(3,300)) + #xlim=c(30,70)
+    scale_y_log10() +
+    labs(
+      y = "Coverage",
+      x = "GC (%)"
+    ) +
+    scale_color_manual(values = c("#404080",  "#b00d02")) + 
+    base_plot_theme() +
+    theme(
+      legend.position = "bottom"
+    ) +
+    scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels)
+}
+
+
+gc1 <- make_gc_plot(bins[1])
+gc2 <- make_gc_plot(bins[2])
+gc3 <- make_gc_plot(bins[3])
+
+c1gc<-ggarrange(c1, gc1, legend = "right")
+c2gc<-ggarrange(c2, gc2, legend = "right")
+c3gc<-ggarrange(c3, gc3, legend = "right")
+
+
+save_cgc_plot <- function(plot,name) {
+  height_hm <- 8
+  width_hm <- 14
+  plot_name <- paste0(name)
+  ggsave(
+    paste0("../figures/", plot_name, ".png"),
+    plot,
+    height = height_hm,
+    width = width_hm,
+    dpi = "retina",
+    bg = "transparent")
+}
+
+save_cgc_plot(c1gc, "bin.2.97")
+save_cgc_plot(c2gc, "bin.2.99")
+save_cgc_plot(c3gc, "bin.3.227")
+
+```
+
+
+```{r}
+
+(c1 + c2) / (c3 + contamination_gc_cov_plt)
 
 
 ```
