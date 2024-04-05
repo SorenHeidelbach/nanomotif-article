@@ -1,0 +1,234 @@
+---
+title: "Decontamination analysis"
+author: "Sebastian Dall"
+date: "2024-03-30"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r}
+pacman::p_load(
+  "data.table",
+  "ggplot2",
+  "stringr",
+  "tidyr",
+  "dplyr",
+  "ggtext",
+  "pheatmap",
+  "purrr",
+  "here",
+  "ggnewscale",
+  "ggpubr",
+  "seqinr"
+)
+source("../src/constants.R")
+source("../src/themes.R")
+source("../src/utility.R")
+```
+
+
+
+```{r}
+ad_qc_in <- fread("../data/anaerobic_digestor/mmlong2_lite/results/mmlong2_lite_bins.tsv") %>% 
+  mutate(sample="AD", decontaminated = FALSE)
+ad_qc_de<- fread("../data/anaerobic_digestor/binnary/checkm2_decontaminated//quality_report.tsv") %>% 
+  mutate(sample = "AD", decontaminated = TRUE) %>% 
+  rename(
+    bin = Name
+  )
+ad_con <- fread("../data/anaerobic_digestor/binnary/bin_contamination.tsv") %>%
+  pull(bin) %>% 
+  unique()
+
+ad <- bind_rows(ad_qc_in, ad_qc_de) %>% 
+  filter(bin %in% ad_con)
+
+fe_qc_in <- fread("../data/fecal/mmlong2_lite/results/mmlong2_lite_bins.tsv") %>% 
+  mutate(sample="fecal", decontaminated = FALSE)
+fe_qc_de <- fread("../data/fecal/binnary/checkm2_decontaminated//quality_report.tsv") %>% 
+  mutate(sample = "fecal", decontaminated = TRUE) %>% 
+  rename(
+    bin = Name
+  )
+fe_con <- fread("../data/fecal/binnary/bin_contamination.tsv") %>% 
+  pull(bin) %>% 
+  unique()
+
+fe <- bind_rows(fe_qc_in, fe_qc_de) %>% 
+  filter(bin %in% fe_con)
+
+
+so_qc_in <- fread("../data/soil_mfd02199/mmlong2_lite/results/mmlong2_lite_bins.tsv") %>% 
+  mutate(sample="soil", decontaminated = FALSE)
+so_qc_de <- fread("../data/soil_mfd02199/nanomotif/checkm2_decontaminated/quality_report.tsv") %>% 
+  mutate(sample = "soil", decontaminated = TRUE) %>% 
+  rename(
+    bin = Name
+  )
+so_com <- fread("../data/soil_mfd02199/nanomotif/bin_contamination.tsv") %>% 
+  pull(bin) %>% 
+  unique()
+
+so <- bind_rows(so_qc_in,so_qc_de) %>% 
+  filter(bin %in% so_com)
+
+qc <- bind_rows(ad, fe, so)
+```
+
+
+
+
+```{r}
+qc_c <- qc %>% 
+  mutate(bin = str_remove(bin, "mmlong2_lite.")) %>% 
+  mutate(
+    mag_quality = case_when(
+      Completeness > 90 & Contamination < 5 ~ "HQ",
+      Completeness > 50 & Contamination < 10 ~ "MQ",
+      .default = "LQ"
+    )
+  )
+
+
+qc_c %>% 
+  group_by(sample, decontaminated, mag_quality) %>% 
+  summarise(
+    com = mean(Completeness),
+    con = mean(Contamination)
+  )
+
+qc_c %>% 
+  group_by(sample, decontaminated, mag_quality) %>% 
+  summarise(
+    n()
+  )
+
+```
+
+
+
+```{r}
+qc_l <- qc_c %>% 
+  select(bin:Contamination, sample, mag_quality, decontaminated) %>%
+  pivot_longer(cols = Completeness:Contamination) %>% 
+  mutate(
+    decontaminated = case_when(
+      decontaminated ~ "after",
+      decontaminated == FALSE ~ "before"
+    ),
+    decontaminated = factor(decontaminated, levels = c("before", "after"))
+  )
+
+qc_w <- qc_l %>%
+  select(-name, -value) %>% 
+  arrange(sample, bin) %>% 
+  distinct(sample, bin, decontaminated, .keep_all = TRUE) %>% 
+  pivot_wider(names_from = decontaminated, values_from = mag_quality)
+
+hq <- qc_w %>% 
+  filter(before == "HQ" | after == "HQ" )
+
+mq2hq <- qc_w %>% 
+  filter(before != after, after == "HQ")
+
+qc_l %>% 
+  filter(
+    paste(bin,sample) %in% paste(hq$bin,hq$sample), sample == "AD"
+  ) %>% 
+  ggplot(aes(x = decontaminated, y = value)) +
+  geom_line(aes(group = bin), position = position_dodge(0.4), alpha = 0.3, color = "gray20") +
+  geom_point(aes(color = mag_quality, group = bin), position = position_dodge(0.4), alpha = 0.6, size = 3) +
+  # geom_boxplot(alpha = 0.2) +
+  facet_grid(name~., scales = "free_y") +
+  labs(
+    x = "",
+    y = "Percentage [%]",
+    title = "Anaerobic digester",
+    color = "MAG quality"
+  ) +
+  base_plot_theme()
+  
+
+height_hm <- 9
+width_hm <- 6
+plot_name <- "mag_quality_decontamination"
+ggsave(
+  paste0("../figures/", plot_name, ".png"),
+  height = height_hm,
+  width = width_hm,
+  dpi = "retina",
+  bg = "transparent")
+```
+
+```{r}
+
+ad_contig_bin <- fread("../data/anaerobic_digestor/binnary/decontaminated_contig_bin.tsv") %>% mutate(sample= "AD")
+fe_contig_bin <- fread("../data/fecal/binnary/decontaminated_contig_bin.tsv") %>% mutate(sample="fecal")
+so_contig_bin <- fread("../data/soil_mfd02199/nanomotif/decontaminated_contig_bin.tsv") %>% mutate(sample="soil")
+
+contig_bin_after <- bind_rows(ad_contig_bin, fe_contig_bin, so_contig_bin) %>% 
+  group_by(sample, bin) %>% 
+  summarise(
+    Total_Contigs_after = n()
+  ) %>% 
+  mutate(
+    bin = str_remove(bin, "mmlong2_lite.")
+  )
+
+
+qc_table <- qc_c %>%
+  select(bin:Contamination,  Total_Contigs, Genome_Size, mag_quality, sample, decontaminated) %>%
+  pivot_longer(cols = Completeness:Genome_Size) %>% 
+  mutate(
+    decontaminated = case_when(
+      decontaminated ~ "after",
+      decontaminated == FALSE ~ "before"
+    ),
+    decontaminated = factor(decontaminated, levels = c("before", "after"))
+  ) %>% 
+  mutate(
+    decon_col = paste0(name, "_", decontaminated)
+  ) 
+
+qc_table_before <- qc_table %>% 
+  filter(decontaminated == "before") %>% 
+  select(-decontaminated, -name) %>% 
+  pivot_wider(names_from = decon_col, values_from = value) %>% 
+  rename(mag_quality_before = mag_quality)
+
+qc_table_after <- qc_table %>% 
+  filter(decontaminated == "after") %>% 
+  select(-decontaminated, -name) %>% 
+  pivot_wider(names_from = decon_col, values_from = value) %>% 
+  select(-Total_Contigs_after) %>% 
+  left_join(contig_bin_after) %>% 
+  rename(mag_quality_after = mag_quality)
+
+
+qc_table_join <- left_join(qc_table_before, qc_table_after) %>% 
+  mutate(
+    Genome_Size_before = paste(round(Genome_Size_before/1000),"kb"),
+    Genome_Size_after = paste(round(Genome_Size_after/1000),"kb")
+  )
+
+write_delim(qc_table_join, "../decontamination.csv", delim = ",")
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
