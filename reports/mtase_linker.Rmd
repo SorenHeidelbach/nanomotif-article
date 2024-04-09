@@ -19,12 +19,12 @@ library(patchwork)
 
 ### Loading MTase-Linker tables
 ```{r, echo = FALSE, message=FALSE}
-E.coli_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/e_coli_K12/mtase_linker/MTase_assignment_table.tsv")
-Geo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/MTase_assignment_table.tsv")
-M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
-Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
-M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/MTase_assignment_table.tsv")
-Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/MTase_assignment_table.tsv")
+E.coli_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/e_coli_K12/mtase_linker/mtase_assignment_table.tsv")
+Geo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/p_thermoglucosidasius/mtase_linker/mtase_assignment_table.tsv")
+M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/mtase_assignment_table.tsv")
+Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/mtase_assignment_table.tsv")
+M.Ruber_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/m_ruber/mtase_linker/mtase_assignment_table.tsv")
+Zymo_MAT <- read_tsv("/projects/dark_science/nanomotif/nanomotif_article/data/ZymoHMW/mtase_linker/mtase_assignment_table.tsv")
 ```
 
 ```{r, message=FALSE}
@@ -56,12 +56,10 @@ TMAT_bin_species_dic <- c("bin.c1" = "Pseudomonas aeruginosa",
 
 TMAT <- TMAT %>%
   mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
-  mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
   filter(!is.na(bin))
 
 TNAT <- TNAT %>%
   mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
-  filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & linked != FALSE)) %>% #filter ambiguous motifs 
   filter(motif_type != "ambiguous" | (motif_type == "ambiguous" & linked != FALSE)) %>% #filter ambiguous motifs 
   mutate(sample = "monocultures") 
   
@@ -75,7 +73,6 @@ TMAT_RM <- TMAT %>%
 ```
 
 
-
 ### Counting number of genes and motifs in each genome.
 ```{r}
 # Group by 'bin name' and summarize
@@ -83,7 +80,7 @@ MTase_count_df <- TMAT %>%
   group_by(bin) %>%
   summarize(
     `MTase_count` = n(),
-    `linked_count_MTase` = sum(!is.na(`detected_motif`))
+    `linked_count_MTase` = sum(!is.na(`detected_motif`)),
     `linked_count_MTase` = sum(!is.na(`detected_motif`))
   )
 
@@ -92,7 +89,7 @@ nanomotif_count_df <- TNAT %>%
   group_by(`bin`) %>%
   summarize(
     `motif_count` = n(),
-    `linked_count_motif` = sum(linked)
+    `linked_count_motif` = sum(linked),
     `linked_count_motif` = sum(linked)
   )
 
@@ -118,9 +115,6 @@ mono_count_plot <- ggplot(TMAT_count_df_long, aes(x = as.factor(bin), y = counts
     values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "linked_count_motif" = "orange"),
     labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "linked_count_motif" = "Linked motifs"),
     breaks = c("MTase_count", "motif_count", "linked_count_motif")) + 
-    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "linked_count_motif" = "orange"),
-    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "linked_count_motif" = "Linked motifs"),
-    breaks = c("MTase_count", "motif_count", "linked_count_motif")) + 
   labs(title = "Monocultures", x = NULL, y = "Count", fill = "Count Type") +
   theme_minimal() +
   scale_y_continuous(breaks = seq(0, 11, by = 2), limits = c(0, 11)) +
@@ -138,62 +132,19 @@ mono_count_plot <- ggplot(TMAT_count_df_long, aes(x = as.factor(bin), y = counts
 mono_count_plot
 ```
 
-### Alluvial plot
-```{r}
-
-allu_MTase_count_df <- TMAT %>%
-  group_by(sub_type, RM_system, mod_type, assigned) %>%
-  summarize(
-    `MTase_count` = n(),
-    `assigned_count` = sum(!is.na(`detected_motif`)),
-    .groups = 'drop')
-
-allu_TNAT_count_df <- TNAT %>%
-  group_by(`bin`, `motif_type`, `mod_type`, `assigned`) %>%
-  summarize(
-    `motif_count` = n(),
-    `assigned_count` = sum(assigned),
-    .groups = 'drop'
-  )
-
-
-ggplot(allu_TNAT_count_df, aes(y = motif_count, axis1 = motif_type, axis2 = assigned)) +
-  geom_alluvium(aes(fill = motif_type)) +
-  geom_stratum(width = 1/12, fill = "white", color = "black", alpha = 0.5) + 
-   geom_label(stat = "stratum", aes(label = after_stat(stratum)), alpha = 0.5) +
-  #scale_fill_brewer(type = "qual", palette = "Set3") +
-  scale_x_continuous(breaks = c(1, 2), labels = c("motif type", "Assigned"), limits = c(0.5, 2.5)) +
-  theme_minimal() +
-  theme(axis.title.x = element_blank(),
-          axis.text.x = element_text(size = 12),
-          axis.ticks.x = element_blank(),
-          axis.text.y = element_blank(),
-          axis.title.y = element_blank(),
-          strip.text.x = element_text(size = 10),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          strip.background = element_rect(fill = "transparent", colour = "transparent"))
-```
-
-### Creating figure
-```{r}
-png("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/figures/mtase_linker_mono_count.png", res = 600, height = 10, width = 20, units = "cm")
-mono_count_plot
-dev.off()
-```
-
 # Simple fecal
 
 ### Loading MTase-Linker tables
 ```{r}
-sfecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/PaPr00000216MP_nm_0.1.19/mtase_linker/MTase_assignment_table.tsv") %>%
+sfecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/PaPr00000216MP_nm_0.1.19/mtase_linker/mtase_assignment_table.tsv") %>%
   filter(!(bin %in% c(
 "NP-PaPr00000216MP.bin.2.1",	
 "NP-PaPr00000216MP.bin.2.2",	
 "NP-PaPr00000216MP.bin.2.3",	
 "NP-PaPr00000216MP.bin.3.1",	
 "NP-PaPr00000216MP.bin.3.9",	
-"NP-PaPr00000216MP.bin.4.1")))
+"NP-PaPr00000216MP.bin.4.1"))) %>% 
+  filter(!is.na(bin))
 sfecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/PaPr00000216MP_nm_0.1.19/mtase_linker/nanomotif_assignment_table.tsv") %>%
   mutate(sample = "sfecal") %>%
   filter(!(bin %in% c(
@@ -208,7 +159,25 @@ sfecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modificatio
 ### Counting number of MTases in RM-system
 ```{r}
 sfecal_MAT_RM <- sfecal_MAT %>% 
-  filter(RM_system == TRUE)
+  filter(RM_system == TRUE) %>% 
+  summarize(n())
+
+sfecal_MAT_nRM <- sfecal_MAT %>% 
+  filter(RM_system == TRUE) %>% 
+  separate(col = gene_id, into = c('contig_a', 'contig_b', 'gene_id'), sep = "_") %>% 
+  mutate(gene_id = as.numeric(gene_id)) %>% 
+  group_by(bin, contig, sub_type) %>% 
+  mutate(diff = c(NA, diff(gene_id))) %>%
+  filter(!(diff >= -12 & diff <= 12) | is.na(diff))
+
+sfecal_MTase_RM_pr_bin <- sfecal_MAT %>%
+  filter(RM_system == TRUE) %>% 
+  group_by(bin) %>% 
+  summarise(MTase_count = n(), .groups = 'drop')
+
+sfecal_MTase_RM_pr_bin$MTase_count[is.na(sfecal_MTase_RM_pr_bin$MTase_count)] <- 0
+sfecal_MAT_median_MTase <- median(sfecal_MTase_RM_pr_bin$MTase_count)
+
 ```
 
 
@@ -218,11 +187,10 @@ sfecal_MAT_RM <- sfecal_MAT %>%
 
 # Group by 'bin' and summarize
 sfecal_MTase_count_df <- sfecal_MAT %>%
-  mutate(bin = `bin name`) %>%
   group_by(`bin`) %>%
   summarize(
     MTase_count = n(),
-    assigned_count_MTase = sum(!is.na(`detected_motif`))
+    linked_count_MTase = sum(!is.na(`detected_motif`))
   )
 
 # Group by 'bin name' and summarize
@@ -230,7 +198,7 @@ sfecal_nanomotif_count_df <- sfecal_NAT %>%
   group_by(`bin`) %>%
   summarize(
     motif_count = n(),
-    assigned_count_motif = sum(assigned)
+    linked_count_motif = sum(linked)
   ) 
 
 # Merge all MTase and motif counts into one dataframe
@@ -239,11 +207,11 @@ sfecal_count_df <- merge(sfecal_MTase_count_df, sfecal_nanomotif_count_df, by = 
   mutate(bin = factor(bin, levels = unique(bin))) %>%
   filter(!is.na(bin))
 
-sfecal_count_df_long <- pivot_longer(sfecal_count_df, cols = c(MTase_count, assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
-  filter(count_type != 	"assigned_count_MTase") %>%
-  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif"))) %>%
-  mutate(bin = sub("^[^\\.]*\\.", "", bin))
-  mutate(bin = sub("^[^\\.]*\\.", "", bin))
+sfecal_count_df_long <- pivot_longer(sfecal_count_df, cols = c(MTase_count, linked_count_MTase, motif_count, linked_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"linked_count_MTase") %>%
+   mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "linked_count_motif"))) #%>%
+  # mutate(bin = sub("^[^\\.]*\\.", "", bin))
+  # mutate(bin = sub("^[^\\.]*\\.", "", bin))
 ```
 
 
@@ -252,9 +220,9 @@ sfecal_count_df_long <- pivot_longer(sfecal_count_df, cols = c(MTase_count, assi
 sfecal_count_plot <- ggplot(sfecal_count_df_long, aes(x = as.factor(bin), y = counts, fill = count_type)) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +
   scale_fill_manual(
-    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "assigned_count_motif" = "orange"),
-    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "assigned_count_motif" = "Assigned motifs"),
-    breaks = c("MTase_count", "motif_count", "assigned_count_motif")) + 
+    values = c("MTase_count" = "#404080", "motif_count" = "#69b3a2", "linked_count_motif" = "orange"),
+    labels = c("MTase_count" = "MTase genes", "motif_count" = "Methylation motifs", "linked_count_motif" = "linked motifs"),
+    breaks = c("MTase_count", "motif_count", "linked_count_motif")) + 
   labs(title = "Simple fecal", x = NULL, y = "Count", fill = "Count Type") +
   theme_minimal() +
   scale_y_continuous(breaks = seq(0, 7, by = 2), limits = c(0, 7)) +
@@ -290,28 +258,35 @@ dev.off()
 
 # Complex samples
 
-
 ```{r}
-fecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/fecal2/mtase_linker/MTase_assignment_table.tsv")
+fecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/fecal2/mtase_linker/mtase_assignment_table.tsv")
 fecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/fecal2/mtase_linker/nanomotif_assignment_table.tsv")
 fecal_assembly_sum <- read_tsv("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/mmlong2_lite/results/mmlong2_lite_bins.tsv")
 
-AD_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/AD/mtase_linker/MTase_assignment_table.tsv")
+AD_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/AD/mtase_linker/mtase_assignment_table.tsv")
 AD_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/AD/mtase_linker/nanomotif_assignment_table.tsv")
 AD_assembly_sum <- read_tsv("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/AD/mmlong2_lite/results/mmlong2_lite_bins.tsv")
+
+soil_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/soil_mfd02199/mtase_linker/mtase_assignment_table.tsv")
+soil_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/soil_mfd02199/mtase_linker/nanomotif_assignment_table.tsv")
+soil_assembly_sum <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/data/soil_mfd02199/mmlong2_lite/results/mmlong2_lite_bins.tsv")
 ```
 
+
+### Filter for HQ bins
 ```{r}
 ### Fecal2 ###
 # Filter and select bins
 fecal_HQ_bins <- fecal_assembly_sum %>%
-  filter(Completeness > 90 & Contamination < 5) %>%
+  filter(Completeness >= 90 & Contamination <= 5) %>%
   select(bin)
 
 # Assuming fecal_MAT is a dataframe and you want to check if each 'bin name' in it is in the 'bin' column of fecal_HQ_bins
 fecal_MAT_HQ <- fecal_MAT %>%
   filter(`bin` %in% fecal_HQ_bins$bin) %>%
   mutate(sample = "fecal2")
+
+fecal_MAT_num_unique_bins <- length(unique(fecal_MAT_HQ$bin))
 
 fecal_NAT_HQ <- fecal_NAT %>%
   filter(`bin` %in% fecal_HQ_bins$bin) %>%
@@ -330,20 +305,306 @@ AD_MAT_HQ <- AD_MAT %>%
   filter(`bin` %in% AD_HQ_bins$bin) %>%
   mutate(sample = "AD") 
 
+AD_MAT_num_unique_bins <- length(unique(AD_MAT_HQ$bin))
+
 AD_NAT_HQ <- AD_NAT %>%
   filter(`bin` %in% AD_HQ_bins$bin) %>%
   mutate(sample = "AD")
+
+
+### Soil ####
+# Filter and select bins
+soil_HQ_bins <- soil_assembly_sum %>%
+  filter(Completeness > 90 & Contamination < 5) %>%
+  select(bin)
+
+# Assuming fecal_MAT is a dataframe and you want to check if each 'bin name' in it is in the 'bin' column of fecal_HQ_bins
+soil_MAT_HQ <- soil_MAT %>%
+  filter(`bin` %in% soil_HQ_bins$bin) %>%
+  mutate(sample = "soil") 
+
+soil_MAT_num_unique_bins <- length(unique(soil_MAT_HQ$bin))
+
+soil_NAT_HQ <- soil_NAT %>%
+  filter(`bin` %in% soil_HQ_bins$bin) %>%
+  mutate(sample = "soil")
 ```
 
 
 ### Counting number of MTases in RM-system
 ```{r}
+### Fecal2 ###
 fecal_MAT_HQ_RM <- fecal_MAT_HQ %>% 
   filter(RM_system == TRUE)
 
+fecal_MAT_nRM <- fecal_MAT_HQ %>% 
+  filter(RM_system == TRUE) %>% 
+  separate(col = gene_id, into = c('contig_a', 'contig_b', 'gene_id'), sep = "_") %>% 
+  mutate(gene_id = as.numeric(gene_id)) %>% 
+  group_by(bin, contig, sub_type) %>% 
+  mutate(diff = c(NA, diff(gene_id))) %>%
+  filter(!(diff >= -12 & diff <= 12) | is.na(diff))
+
+
+fecal_MTase_RM_pr_bin <- fecal_MAT_HQ %>%
+  filter(RM_system == TRUE) %>% 
+  group_by(bin) %>% 
+  summarise(MTase_count = n(), .groups = 'drop') %>% 
+  merge(fecal_HQ_bins, by = 'bin', all = TRUE )
+
+fecal_MTase_RM_pr_bin$MTase_count[is.na(fecal_MTase_RM_pr_bin$MTase_count)] <- 0
+fecal_MAT_median_MTase <- median(fecal_MTase_RM_pr_bin$MTase_count)
+
+
+### AD ####
 AD_MAT_HQ_RM <- AD_MAT_HQ %>% 
   filter(RM_system == TRUE)
+
+AD_MAT_nRM <- AD_MAT_HQ %>% 
+  filter(RM_system == TRUE) %>% 
+  separate(col = gene_id, into = c('contig_a', 'contig_b', 'gene_id'), sep = "_") %>% 
+  mutate(gene_id = as.numeric(gene_id)) %>% 
+  group_by(bin, contig, sub_type) %>% 
+  mutate(diff = c(NA, diff(gene_id))) %>%
+  filter(!(diff >= -12 & diff <= 12) | is.na(diff))
+
+AD_MTase_RM_pr_bin <- AD_MAT_HQ %>%
+  filter(RM_system == TRUE) %>% 
+  group_by(bin) %>% 
+  summarise(MTase_count = n(), .groups = 'drop') %>% 
+  merge(AD_HQ_bins, by = 'bin', all = TRUE )
+
+AD_MTase_RM_pr_bin$MTase_count[is.na(AD_MTase_RM_pr_bin$MTase_count)] <- 0
+AD_MAT_median_MTase <- median(AD_MTase_RM_pr_bin$MTase_count)
+
+
+### Soil ####
+soil_MAT_HQ_RM <- soil_MAT_HQ %>% 
+  filter(RM_system == TRUE)
+
+soil_MAT_nRM <- soil_MAT_HQ %>% 
+  filter(RM_system == TRUE) %>% 
+  separate(col = gene_id, into = c('contig_a', 'contig_b', 'gene_id'), sep = "_") %>% 
+  mutate(gene_id = as.numeric(gene_id)) %>% 
+  group_by(bin, contig, sub_type) %>% 
+  mutate(diff = c(NA, diff(gene_id))) %>%
+  filter(!(diff >= -12 & diff <= 12) | is.na(diff))
+
+soil_MTase_RM_pr_bin <- soil_MAT_HQ %>%
+  filter(RM_system == TRUE) %>% 
+  group_by(bin) %>% 
+  summarise(MTase_count = n(), .groups = 'drop') %>% 
+  merge(soil_HQ_bins, by = 'bin', all = TRUE )
+
+soil_MTase_RM_pr_bin$MTase_count[is.na(soil_MTase_RM_pr_bin$MTase_count)] <- 0
+soil_MAT_median_MTase <- median(soil_MTase_RM_pr_bin$MTase_count)
 ```
 
+```{r}
+### All metagenomic samples
+
+# Median number of MTases in RM system pr. HQ MAG
+all_MTase_RM_pr_bin <- rbind(sfecal_MTase_RM_pr_bin, fecal_MTase_RM_pr_bin, AD_MTase_RM_pr_bin, soil_MTase_RM_pr_bin)
+all_MTase_RM_pr_bin$MTase_count[is.na(all_MTase_pr_bin$MTase_count)] <- 0
+all_MAT_RM_median_MTase <- mean(all_MTase_RM_pr_bin$MTase_count)
+
+all_MTase_Rm_pr_bin_with <- all_MTase_RM_pr_bin %>% 
+  filter( MTase_count > 0)
+
+all_MAT_nRM <- rbind(sfecal_MAT_nRM, fecal_MAT_nRM, AD_MAT_nRM, soil_MAT_nRM)
+all_MAT_nRM_linked <- all_MAT_nRM %>% 
+  filter(linked == TRUE)
+```
+
+```{r}
+TMAT_md <- TMAT %>% 
+  inner_join(TNAT, by = c("bin" = "bin", "detected_motif" = "motif")) %>% 
+  mutate(methylation_degree = n_mod_bin/(n_mod_bin + n_nomod_bin))
+
+
+fecal_MAT_HQ_md <- fecal_MAT_HQ %>% 
+  inner_join(fecal_NAT_HQ, by = c("bin" = "bin", "detected_motif" = "motif")) %>% 
+  mutate(methylation_degree = n_mod_bin/(n_mod_bin + n_nomod_bin))
+
+AD_MAT_HQ_md <- AD_MAT_HQ %>% 
+  inner_join(AD_NAT_HQ, by = c("bin" = "bin", "detected_motif" = "motif")) %>% 
+  mutate(methylation_degree = n_mod_bin/(n_mod_bin + n_nomod_bin))
+```
+
+```{r}
+ggplot(fecal_MAT_HQ_md, aes(x = as.factor(RM_system), y = methylation_degree, color = RM_system)) +
+  geom_jitter() +
+  labs(x = "Belong to RM-system", y = "Methylation degree") +
+  scale_x_discrete(labels = c("False", "True")) +
+  theme_minimal()
+```
+
+# Supplementary files
+
+```{r}
+zymo_bin_motifs <- read_tsv("../data/ZymoHMW/nanomotif/bin-motifs.tsv")
+e_coli_bin_motifs <- read_tsv("../data/e_coli_K12/nanomotif/bin-motifs.tsv")
+m_ruber_bin_motifs <- read_tsv("../data/m_ruber/nanomotif/bin-motifs.tsv")
+geo_bin_motifs <- read_tsv("../data/p_thermoglucosidasius/nanomotif/bin-motifs.tsv")
+
+
+```
+
+```{r}
+T_bin_motifs <- rbind(zymo_bin_motifs, e_coli_bin_motifs, m_ruber_bin_motifs, geo_bin_motifs)
+
+#Bin to species names dictionary
+TMAT_bin_species_dic <- c("bin.c1" = "Pseudomonas aeruginosa",
+                          "bin.c2" = "Escherichia coli (ZymoHMW)",
+                          "bin.c3" = "Salmonella enterica",
+                          "bin.c4" = "Bacillus spizizenii",
+                          "bin.c5" = "Listeria monocytogenes",
+                          "bin.c6" = "Enterococcus faecalis",
+                          "bin.c7" = "Staphylococcus aureus",
+                          "E.coli_K12_stat_3" = "Escherichia coli K-12",
+                          "Geobacillus_3" = "P. thermoglucosidadius",
+                          "M.ruber_1" = "Meiothermus ruber"
+                          )
+
+T_bin_motifs <- T_bin_motifs %>%
+  mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
+  filter(!is.na(bin)) %>% 
+  mutate(has_motif = TRUE) %>% 
+  select(c(bin, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement))
+
+TNAT_sub <- TNAT %>% 
+  select(bin, motif, linked, candidate_genes) %>% 
+  mutate(motif = recode(motif, !!!c("AACNNNNNNGTGC" = "GCACNNNNNNGTT")))
+
+T_NAT_supp <- T_bin_motifs %>% 
+  full_join(TNAT_sub, by = c('bin', 'motif'))
+
+T_MAT_supp <- TMAT
+```
+
+```{r}
+sfecal_NAT <- read_tsv("../data/PaPr00000216MP/mtase_linker/nanomotif_assignment_table.tsv")
+sfecal_bin_motifs <- read_tsv("../data/PaPr00000216MP_nm_0.1.19/nanomotif/bin-motifs.tsv")
+sfecal_quality <- read_tsv("../data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv") %>% 
+  select(bin, Completeness, Contamination) %>% 
+  mutate(MIMAG_standard = case_when(
+    Completeness > 90 & Contamination < 5 ~ "HQ",
+    Completeness > 50 & Contamination < 10 ~ "MQ",
+    TRUE ~ "LQ"
+  ))
+
+sfecal_NAT_sub <- sfecal_NAT %>% 
+  select(bin, motif, linked, candidate_genes)
+
+sfecal_bin_motif <- sfecal_bin_motifs %>% 
+  mutate(has_motif = TRUE) %>% 
+  select(c(bin, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement))
+
+sfecal_NAT_supp <- sfecal_bin_motif %>% 
+  full_join(sfecal_quality, by = c('bin')) %>% 
+  select(c(bin, Completeness, Contamination, MIMAG_standard, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement)) %>% 
+  full_join(sfecal_NAT_sub, by = c('bin', 'motif')) %>% 
+  mutate(has_motif = if_else(is.na(has_motif), FALSE, has_motif),
+         candidate_genes = if_else(candidate_genes == "nan", NA, candidate_genes))
+
+sfecal_MAT_supp <- read_tsv("../data/PaPr00000216MP/mtase_linker/mtase_assignment_table.tsv") %>%
+  right_join(sfecal_quality, by = 'bin') %>% 
+  select(bin, Completeness, Contamination, MIMAG_standard, gene_id, contig, mod_type, sub_type, RM_system, motif_type, REbase_ID, motif_pred, linked, detected_motif)
+  
+
+```
+
+```{r}
+fecal_NAT <- read_tsv("../data/fecal/mtase_linker/nanomotif_assignment_table.tsv")
+fecal_bin_motifs <- read_tsv("../data/fecal/nanomotif/bin-motifs.tsv")
+fecal_quality <- read_tsv("../data/fecal/mmlong2_lite/results/mmlong2_lite_bins.tsv") %>% 
+  select(bin, Completeness, Contamination) %>% 
+  mutate(MIMAG_standard = case_when(
+    Completeness > 90 & Contamination < 5 ~ "HQ",
+    Completeness > 50 & Contamination < 10 ~ "MQ",
+    TRUE ~ "LQ"
+  ))
+
+fecal_NAT_sub <- fecal_NAT %>% 
+  select(bin, motif, linked, candidate_genes)
+
+fecal_bin_motif <- fecal_bin_motifs %>% 
+  mutate(has_motif = TRUE) %>% 
+  select(c(bin, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement))
+
+fecal_NAT_supp <- fecal_bin_motif %>% 
+  full_join(fecal_quality, by = c('bin')) %>% 
+  select(c(bin, Completeness, Contamination, MIMAG_standard, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement)) %>% 
+  full_join(fecal_NAT_sub, by = c('bin', 'motif')) %>% 
+  mutate(has_motif = if_else(is.na(has_motif), FALSE, has_motif),
+         candidate_genes = if_else(candidate_genes == "nan", NA, candidate_genes))
+
+fecal_MAT_supp <- read_tsv("../data/fecal/mtase_linker/mtase_assignment_table.tsv") %>%
+  right_join(fecal_quality, by = 'bin') %>% 
+  select(bin, Completeness, Contamination, MIMAG_standard, gene_id, contig, mod_type, sub_type, RM_system, motif_type, REbase_ID, motif_pred, linked, detected_motif)
+```
+
+```{r}
+AD_NAT <- read_tsv("../data/anaerobic_digestor/mtase_linker/nanomotif_assignment_table.tsv")
+AD_bin_motifs <- read_tsv("../data/anaerobic_digestor/nanomotif/bin-motifs.tsv")
+AD_quality <- read_tsv("../data/anaerobic_digestor/mmlong2_lite/results/mmlong2_lite_bins.tsv") %>% 
+  select(bin, Completeness, Contamination) %>% 
+  mutate(MIMAG_standard = case_when(
+    Completeness > 90 & Contamination < 5 ~ "HQ",
+    Completeness > 50 & Contamination < 10 ~ "MQ",
+    TRUE ~ "LQ"
+  ))
+
+AD_NAT_sub <- AD_NAT %>% 
+  select(bin, motif, linked, candidate_genes)
+
+AD_bin_motif <- AD_bin_motifs %>% 
+  mutate(has_motif = TRUE) %>% 
+  select(c(bin, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement))
+
+AD_NAT_supp <- AD_bin_motif %>% 
+  full_join(AD_quality, by = c('bin')) %>% 
+  select(c(bin, Completeness, Contamination, MIMAG_standard, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement)) %>% 
+  full_join(AD_NAT_sub, by = c('bin', 'motif')) %>% 
+  mutate(has_motif = if_else(is.na(has_motif), FALSE, has_motif),
+         candidate_genes = if_else(candidate_genes == "nan", NA, candidate_genes))
+
+AD_MAT_supp <- read_tsv("../data/anaerobic_digestor/mtase_linker/mtase_assignment_table.tsv")
+  right_join(AD_quality, by = 'bin') %>% 
+  select(bin, Completeness, Contamination, MIMAG_standard, gene_id, contig, mod_type, sub_type, RM_system, motif_type, REbase_ID, motif_pred, linked, detected_motif)
+```
+
+```{r}
+soil_NAT <- read_tsv("../data/anaerobic_digestor/mtase_linker/nanomotif_assignment_table.tsv")
+soil_bin_motifs <- read_tsv("../data/anaerobic_digestor/nanomotif/bin-motifs.tsv")
+soil_quality <- read_tsv("../data/anaerobic_digestor/mmlong2_lite/results/mmlong2_lite_bins.tsv") %>% 
+  select(bin, Completeness, Contamination) %>% 
+  mutate(MIMAG_standard = case_when(
+    Completeness > 90 & Contamination < 5 ~ "HQ",
+    Completeness > 50 & Contamination < 10 ~ "MQ",
+    TRUE ~ "LQ"
+  ))
+
+soil_NAT_sub <- soil_NAT %>% 
+  select(bin, motif, linked, candidate_genes)
+
+soil_bin_motif <- soil_bin_motifs %>% 
+  mutate(has_motif = TRUE) %>% 
+  select(c(bin, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement))
+
+soil_NAT_supp <- soil_bin_motif %>% 
+  full_join(soil_quality, by = c('bin')) %>% 
+  select(c(bin, Completeness, Contamination, MIMAG_standard, has_motif, mod_type, motif, mod_position, n_mod_bin, n_nomod_bin, motif_type, motif_complement, mod_position_complement, n_mod_complement, n_nomod_complement)) %>% 
+  full_join(soil_NAT_sub, by = c('bin', 'motif')) %>% 
+  mutate(has_motif = if_else(is.na(has_motif), FALSE, has_motif),
+         candidate_genes = if_else(candidate_genes == "nan", NA, candidate_genes))
+
+soil_MAT_supp <- read_tsv("../data/anaerobic_digestor/mtase_linker/mtase_assignment_table.tsv")
+  right_join(soil_quality, by = 'bin') %>% 
+  select(bin, Completeness, Contamination, MIMAG_standard, gene_id, contig, mod_type, sub_type, RM_system, motif_type, REbase_ID, motif_pred, linked, detected_motif)
+```
+
+```{r}
+write_csv(T_MAT_supp, )
 ```
 

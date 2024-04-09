@@ -49,7 +49,7 @@ binary_comparison_df_fe <- fread("../data/fecal/binnary/fecal_comparison_matrix.
 bin_contamination_fe <- fread("../data/fecal/binnary/bin_contamination.tsv")
 quality_fe <- fread("../data/fecal/mmlong2_lite/results/mmlong2_lite_bins.tsv")
 assembly_info_fe <- fread("../data/fecal/mmlong2_lite/tmp/flye/assembly_info.txt") %>% 
-  rename(
+  dplyr::rename(
     contig = `#seq_name`
   ) %>% 
   select(contig, length)
@@ -84,16 +84,16 @@ bin_consensus_fe <- prepare_bin_consensus(bin_consensus_fe) %>%
 ```
 
 ```{r}
-bin_consensus_all <- bind_rows(bin_consensus_a, bin_consensus_fe)
+bin_consensus_all <- rbind(bin_consensus_a, bin_consensus_fe)
 
-bin_contamination_all <- bind_rows(bin_contamination_qc_a, bin_contamination_qc_fe)
+bin_contamination_all <- rbind(bin_contamination_qc_a, bin_contamination_qc_fe)
 
 
 contamination <- bin_contamination_all %>% 
   mutate(is_contamination = TRUE) %>% 
   select(contig, is_contamination, sample)
 
-binary_comparison_all <- bind_rows(binary_comparison_df_f_a, binary_comparison_df_f_fe) %>% 
+binary_comparison_all <- rbind(binary_comparison_df_f_a, binary_comparison_df_f_fe) %>% 
   left_join(contamination) %>% 
   mutate(is_contamination = ifelse(is.na(is_contamination), FALSE, is_contamination))
 
@@ -108,6 +108,7 @@ bin_contamination_all %>%
   )
   
 ```
+
 ```{r}
 bin_contamination_all %>% 
   group_by(sample, mag_quality) %>%
@@ -287,13 +288,6 @@ bins_q <- quality_a %>%
   
 
 
-
-
-
-
-make_plot <- function(bin2see) {
-  data <- binary_comparison_all %>% filter(sample == "AD") %>% 
-    filter(bin == bin2see) %>%
 make_plot <- function(bin2see) {
   data <- binary_comparison_all %>% filter(sample == "AD") %>% 
     filter(bin == bin2see) %>%
@@ -360,21 +354,7 @@ make_plot <- function(bin2see) {
       strip.text = element_text(size = 6),
       legend.title = element_text(size = 5),
       legend.text = element_text(size = 5),
-      legend.key.size = unit(0.3, 'cm'),
-      legend.position = "none",
-      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
-      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
-      plot.subtitle = element_text(size = 6),
-      plot.title = element_text(size = 7),
-      strip.text = element_text(size = 6),
-      legend.title = element_text(size = 5),
-      legend.text = element_text(size = 5),
-      legend.key.size = unit(0.3, 'cm'),
-      panel.grid.minor = element_blank(),  # Remove minor gridlines
-      panel.background = element_blank(),   # Remove panel background,
-      plot.background = element_blank(),
-      plot.background = element_blank(),
-    ) +
+      legend.key.size = unit(0.3, 'cm')) +
     labs(
       x = NULL,
       x = NULL,
@@ -403,7 +383,7 @@ plots_contamination_data = tibble(
 
 
 
-plots_contamination_data$plt[[1]] <- plots_contamination_data$plt[[1]] + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(title = "Anaerobic digestor")
+plots_contamination_data$plt[[1]] <- plots_contamination_data$plt[[1]] + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + labs(title = "Anaerobic Digester")
 
 plots_contamination_data$plt[[2]] <- plots_contamination_data$plt[[2]] + theme(legend.position = "bottom")
 
@@ -442,7 +422,7 @@ gc_df_a <- fread("../data/anaerobic_digestor/gc_content.tsv")
 
 ```{r}
 mm_a <- gc_df_a %>% 
-  left_join(cov_a %>% rename(contig = contigName)) %>% 
+  left_join(cov_a %>% dplyr::rename(contig = contigName)) %>% 
   mutate(sample = "AD") %>% 
   left_join(binary_comparison_all %>% filter(sample == "AD") %>% select(contig, bin, sample, is_contamination, length) %>% distinct(contig, sample, .keep_all = TRUE)) %>% 
   filter(length >= 36900)
@@ -450,6 +430,10 @@ mm_a <- gc_df_a %>%
 
 bins = c("bin.2.97", "bin.2.99", "bin.3.227")
 mm_bin_ad <- mm_a %>% filter(bin %in% bins, sample == "AD")
+
+mm_a_filt <- mm_a %>% 
+  filter(length >= 36900)
+
 
 mm_bin_ad_label <- mm_bin_ad %>% 
   group_by(bin) %>% 
@@ -462,18 +446,18 @@ mm_bin_ad_label <- mm_bin_ad %>%
 labels <- c("250k", "1000k")
 breaks <- c(250, 1000) * 1000
 
-contamination_gc_cov_plt <- mm_a %>% 
+contamination_gc_cov_plt <- mm_a_filt %>% 
   filter(!bin %in% bins) %>% 
 ggplot(aes(y = `1_cov.bam`, x = gc * 100, size = length)) +
   geom_point(color = "gray70", alpha = 0.4, pch = 1,) + 
-  geom_point(data = mm_bin_ad %>% rename(Contamination = is_contamination), aes(color = Contamination), alpha = 0.7, pch = 16) +
+  geom_point(data = mm_bin_ad %>% dplyr::rename(Contamination = is_contamination), aes(color = Contamination), alpha = 0.7, pch = 16) +
   ggrepel::geom_label_repel(data = mm_bin_ad_label, aes(label = bin, fill = bin), alpha = 0.7, box.padding = 2, size = 1.5, show.legend = FALSE) +
   coord_cartesian(xlim=c(40,70), ylim = c(3,10000)) +
   scale_y_log10() +
   labs(
     y = "Coverage",
     x = "GC (%)",
-    title = "Anaerobic Digestor"
+    title = "Anaerobic Digester"
   ) +
   scale_color_manual(values = c("#404080",  "#b00d02")) + 
   scale_fill_manual(values = c('white', 'white')) +
@@ -481,8 +465,9 @@ ggplot(aes(y = `1_cov.bam`, x = gc * 100, size = length)) +
   theme(
     legend.position = "bottom"
   ) +
-  scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels, range = c(0.1, 5)) + 
-  guides(color = guide_legend(direction = "horizontal", title.position = "top", title.hjust = 0.1, order = 1), shape = FALSE, size = guide_legend(title.position = "top", title.hjust = 0.2, override.aes = list(color = "gray70", pch = 1))) #+
+  scale_size_continuous(name = "Contig length", limits = c(10000, 7.5*10^6), breaks = breaks, labels = labels, range = c(0.1, 5)) + 
+  guides(color = guide_legend(direction = "horizontal", title.position = "top", title.hjust = 0.1, order = 1), shape = FALSE, size = FALSE)
+           #guide_legend(title.position = "top", title.hjust = 0.2, override.aes = list(color = "gray70", pch = 1))) #+
   # guides(size = guide_legend(title = "Fragment Length"))
 
 
