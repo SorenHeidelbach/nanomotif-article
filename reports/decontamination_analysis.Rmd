@@ -77,6 +77,21 @@ so <- bind_rows(so_qc_in,so_qc_de) %>%
 qc <- bind_rows(ad, fe, so)
 ```
 
+```{r}
+so_qc_in %>% 
+  mutate(bin = str_remove(bin, "mmlong2_lite.")) %>% 
+  mutate(
+    mag_quality = case_when(
+      Completeness > 90 & Contamination < 5 ~ "HQ",
+      Completeness > 50 & Contamination < 10 ~ "MQ",
+      .default = "LQ"
+    )
+  ) %>% 
+  group_by(mag_quality) %>% 
+  summarise(
+    n()
+  )
+```
 
 
 
@@ -225,6 +240,79 @@ write_delim(qc_table_join, "../decontamination.csv", delim = ",")
 
 
 
+# Stats for figure
+```{r}
+detected_contamination_ad <- fread("../data/anaerobic_digestor/binnary/bin_contamination.tsv") %>% left_join(ad_qc_in)
+included_ad <- fread("../data/anaerobic_digestor/binnary/include_contigs.tsv")
+genomad_ad <- fread("../data/anaerobic_digestor/genomad_mmlong2/asm_pol_lenfilt_nn_classification/asm_pol_lenfilt_nn_classification.tsv") %>% 
+  rename(
+    contig = seq_name
+  ) %>%
+  right_join(included_ad) %>% 
+  mutate(sample = "AD")
+
+detected_contamination_fe <- fread("../data/fecal/binnary/bin_contamination.tsv") %>% left_join(fe_qc_in)
+included_fe <- fread("../data/fecal/binnary/include_contigs.tsv")
+genomad_fe <- fread("../data/fecal/genomad_mmlong2/asm_pol_lenfilt_nn_classification/asm_pol_lenfilt_nn_classification.tsv") %>% 
+  rename(
+    contig = seq_name
+  ) %>%  
+  right_join(included_fe) %>% 
+  mutate(sample = "fecal")
+
+
+
+
+included_sim <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/include_contigs.tsv")
+genomad_sim <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216MP_assembly_nn_classification/NP-PaPr00000216MP_assembly_nn_classification.tsv") %>% 
+  rename(
+    contig = seq_name
+  ) %>%  
+  right_join(included_sim) %>% 
+  mutate(sample = "fecal_sim")
+
+detected_contamination_so <- fread("../data/soil_mfd02199/nanomotif/bin_contamination.tsv") %>% left_join(so_qc_in)
+included_so <- fread("../data/soil_mfd02199/nanomotif/include_contigs.tsv")
+genomad_so <- fread("../data/soil_mfd02199/genomad/mmlong2_lite_assembly_nn_classification/mmlong2_lite_assembly_nn_classification.tsv") %>% 
+  rename(
+    contig = seq_name
+  ) %>%  
+  right_join(included_so) %>% 
+  mutate(sample = "soil")
+
+
+```
+
+```{r}
+detected_contamination <- bind_rows(detected_contamination_ad, detected_contamination_fe, detected_contamination_so)
+
+detected_contamination %>% 
+  mutate(
+    mag_quality = case_when(
+      Completeness > 90 & Contamination < 5 ~ "HQ",
+      Completeness > 50 & Contamination < 10 ~ "MQ",
+      .default = "LQ"
+    )
+  ) %>% 
+  group_by(sample, mag_quality) %>% 
+  summarise(
+    n()
+  )
+
+
+
+bind_rows(genomad_ad, genomad_fe, genomad_so, genomad_sim) %>%
+  mutate(
+    is_mge = case_when(
+      (plasmid_score > chromosome_score) | (virus_score > chromosome_score) ~ TRUE,
+      .default = FALSE
+    )
+  ) %>% 
+  group_by(sample, is_mge) %>% 
+  summarise(n())
+  
+
+```
 
 
 
