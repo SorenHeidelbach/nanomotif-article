@@ -502,7 +502,7 @@ hm_combined <- ggplot(combined_benchmark) +
   ) +
   #coord_fixed(ratio= 1, clip="off") +
   labs(
-    x = "Number of motif occourances",
+    x = "Number of motif occurrences",
     y = "Read coverage",
     fill = "Motif\nRecall"
   )
@@ -564,7 +564,7 @@ bin_consensus_benchmark <- ggplot(nm_bin_benchmark) +
   ) +
   coord_fixed(ratio= 1, clip="off") +
   labs(
-    x = "Number of motif occourances",
+    x = "Number of motif occurrences",
     y = "Read coverage",
     fill = "Identified in\nbin-consensus"
   ) +

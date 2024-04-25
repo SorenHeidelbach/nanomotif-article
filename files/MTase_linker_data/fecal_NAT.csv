@@ -1,0 +1,391 @@
+bin,Completeness,Contamination,MIMAG_standard,has_motif,mod_type,motif,mod_position,n_mod_bin,n_nomod_bin,motif_type,motif_complement,mod_position_complement,n_mod_complement,n_nomod_complement,linked,candidate_genes
+mmlong2_lite.bin.1.106,100,1.21,HQ,TRUE,a,CGACC,2,5076,808,non-palindrome,NA,NA,NA,NA,FALSE,"contig_2844_2, contig_3927_329"
+mmlong2_lite.bin.1.118,97,0.38,HQ,TRUE,a,AAGNNNNNGAT,1,1150,769,bipartite,NA,NA,NA,NA,FALSE,contig_1005_502
+mmlong2_lite.bin.1.118,97,0.38,HQ,TRUE,a,CATCNNNNNCTT,1,561,64,bipartite,NA,NA,NA,NA,FALSE,contig_1005_502
+mmlong2_lite.bin.1.118,97,0.38,HQ,TRUE,a,GATC,1,18836,1463,palindrome,GATC,1,18836,1463,FALSE,"contig_1005_375, contig_1005_393, contig_1005_698, contig_1005_812, contig_1206_206, contig_1206_319, contig_5862_330, contig_707_551"
+mmlong2_lite.bin.1.118,97,0.38,HQ,TRUE,a,TAKCNNNNNCTT,1,442,165,bipartite,NA,NA,NA,NA,FALSE,contig_1005_502
+mmlong2_lite.bin.1.118,97,0.38,HQ,TRUE,a,TCATGA,2,900,119,palindrome,TCATGA,2,900,119,FALSE,"contig_1005_375, contig_1005_393, contig_1005_698, contig_1005_812, contig_1206_206, contig_1206_319, contig_5862_330, contig_707_551"
+mmlong2_lite.bin.1.119,97.95,1.77,HQ,TRUE,a,GGGAG,3,2421,863,non-palindrome,NA,NA,NA,NA,FALSE,"contig_3884_509, contig_9544_180"
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,a,ATGNNNNCGT,0,1087,75,bipartite,NA,NA,NA,NA,FALSE,"contig_2780_612, contig_2803_555, contig_2803_743"
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,a,AYGNNNNCAT,0,1056,934,bipartite,NA,NA,NA,NA,FALSE,"contig_2780_612, contig_2803_555, contig_2803_743"
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,a,GRTCSATS,5,651,592,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,a,SAGNNNNNNTGA,1,434,506,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,a,SGTCSATSA,5,406,189,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,a,TCANNNNNNCTG,2,426,65,bipartite,NA,NA,NA,NA,FALSE,"contig_2780_612, contig_2803_555, contig_2803_743"
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,m,CTGCTCGAY,5,186,84,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,m,NATCGAB,3,3500,4927,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,m,RTCGAY,2,5342,4919,palindrome,RTCGAY,2,5342,4919,FALSE,"contig_2780_498, contig_2799_35, contig_2803_811"
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,m,TCGAT,1,3740,8191,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.12,99.98,0.93,HQ,TRUE,m,TGMTCGACG,4,252,38,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.121,99.99,0,HQ,TRUE,a,GCATTC,2,1315,344,non-palindrome,GAATGC,2,1447,212,FALSE,NA
+mmlong2_lite.bin.1.121,99.99,0,HQ,TRUE,a,GCCNAG,4,2153,305,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.121,99.99,0,HQ,TRUE,a,GRNTANNNNNNNTGG,4,240,165,ambiguous,CCANNNNNNNTANYC,2,254,151,FALSE,NA
+mmlong2_lite.bin.1.126,97.33,1.37,HQ,TRUE,a,ATC,0,31529,79015,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.126,97.33,1.37,HQ,TRUE,a,CGACC,2,3127,286,non-palindrome,NA,NA,NA,NA,FALSE,"contig_4719_167, contig_879_154"
+mmlong2_lite.bin.1.126,97.33,1.37,HQ,TRUE,a,GAGAGC,3,745,325,non-palindrome,NA,NA,NA,NA,FALSE,"contig_4719_167, contig_879_154"
+mmlong2_lite.bin.1.126,97.33,1.37,HQ,TRUE,a,GCYCAG,4,2938,130,non-palindrome,NA,NA,NA,NA,FALSE,"contig_4719_167, contig_879_154"
+mmlong2_lite.bin.1.126,97.33,1.37,HQ,TRUE,m,TCCGAYC,2,343,337,non-palindrome,NA,NA,NA,NA,TRUE,contig_879_186
+mmlong2_lite.bin.1.127,99.83,0.3,HQ,TRUE,a,CGWAAT,4,1176,110,non-palindrome,NA,NA,NA,NA,FALSE,"contig_1170_250, contig_1529_243, contig_1529_281"
+mmlong2_lite.bin.1.127,99.83,0.3,HQ,TRUE,a,SCGAGC,3,2220,179,non-palindrome,NA,NA,NA,NA,FALSE,"contig_1170_250, contig_1529_243, contig_1529_281"
+mmlong2_lite.bin.1.127,99.83,0.3,HQ,TRUE,a,TGATC,2,6240,390,non-palindrome,NA,NA,NA,NA,FALSE,"contig_1170_250, contig_1529_243, contig_1529_281"
+mmlong2_lite.bin.1.127,99.83,0.3,HQ,TRUE,m,GCGCGC,1,1546,559,palindrome,GCGCGC,1,1546,559,TRUE,contig_2318_12
+mmlong2_lite.bin.1.129,99.99,0.37,HQ,TRUE,a,AGGNNNNNCTT,0,1694,447,bipartite,AAGNNNNNCCT,1,1793,348,FALSE,"contig_1875_179, contig_650_1126, contig_650_23, contig_650_728"
+mmlong2_lite.bin.1.129,99.99,0.37,HQ,TRUE,a,GATC,1,9412,1189,palindrome,GATC,1,9412,1189,TRUE,"contig_650_449, contig_650_451"
+mmlong2_lite.bin.1.13,97.14,4.28,HQ,TRUE,m,TCTGG,1,2632,28,non-palindrome,CCAGA,1,2416,244,FALSE,NA
+mmlong2_lite.bin.1.131,99.98,0.71,HQ,TRUE,a,GAAGAA,5,1835,1081,non-palindrome,NA,NA,NA,NA,TRUE,contig_2772_23
+mmlong2_lite.bin.1.131,99.98,0.71,HQ,TRUE,m,CTNAG,0,1266,750,palindrome,CTNAG,0,1266,750,TRUE,contig_6682_206
+mmlong2_lite.bin.1.133,98.87,0.42,HQ,TRUE,a,RTTANNNNNNNNTAAY,3,538,224,bipartite,RTTANNNNNNNNTAAY,3,538,224,FALSE,"contig_10695_431, contig_4527_659"
+mmlong2_lite.bin.1.134,99.9,0,HQ,TRUE,a,GACNNNNNNCTG,1,1050,175,bipartite,CAGNNNNNNGTC,1,1096,129,FALSE,"contig_107_136, contig_99_105"
+mmlong2_lite.bin.1.134,99.9,0,HQ,TRUE,a,TGANNNNNTAG,2,1140,303,bipartite,CTANNNNNTCA,2,1334,109,FALSE,"contig_107_136, contig_99_105"
+mmlong2_lite.bin.1.135,93.41,1.17,HQ,TRUE,a,CTTCAG,4,2185,279,non-palindrome,CTGAAG,4,2401,63,FALSE,contig_901_1089
+mmlong2_lite.bin.1.135,93.41,1.17,HQ,TRUE,a,GAGACG,3,559,141,non-palindrome,NA,NA,NA,NA,FALSE,contig_901_1089
+mmlong2_lite.bin.1.135,93.41,1.17,HQ,TRUE,a,GGAASC,2,1644,716,non-palindrome,NA,NA,NA,NA,FALSE,contig_901_1089
+mmlong2_lite.bin.1.135,93.41,1.17,HQ,TRUE,m,CGTCTC,3,666,34,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.135,93.41,1.17,HQ,TRUE,m,GCGC,1,868,187,palindrome,GCGC,1,868,187,TRUE,contig_678_63
+mmlong2_lite.bin.1.135,93.41,1.17,HQ,TRUE,m,GCTTCC,1,1211,320,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.138,94.23,3.83,HQ,TRUE,m,GGNCC,3,2743,1292,palindrome,GGNCC,3,2743,1292,TRUE,contig_6116_91
+mmlong2_lite.bin.1.139,98.33,1.39,HQ,TRUE,a,CCNNAAGG,5,1785,337,non-palindrome,NA,NA,NA,NA,TRUE,contig_912_119
+mmlong2_lite.bin.1.139,98.33,1.39,HQ,TRUE,m,ACGGG,1,2427,152,non-palindrome,NA,NA,NA,NA,TRUE,"contig_1894_119, contig_1894_121"
+mmlong2_lite.bin.1.139,98.33,1.39,HQ,TRUE,m,CCCGYN,1,2303,3090,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.143,95.65,0.22,HQ,TRUE,m,GATC,3,12661,2714,palindrome,GATC,3,12661,2714,TRUE,contig_6515_119
+mmlong2_lite.bin.1.144,97.58,1.32,HQ,TRUE,a,AGCT,0,2384,646,palindrome,AGCT,0,2384,646,FALSE,"contig_1881_529, contig_1881_668"
+mmlong2_lite.bin.1.144,97.58,1.32,HQ,TRUE,a,GAGNNNNRTTT,1,199,176,bipartite,AAAYNNNNCTC,2,304,71,TRUE,contig_1880_580
+mmlong2_lite.bin.1.147,98.62,4.16,HQ,TRUE,m,GATC,3,9959,479,palindrome,GATC,3,9959,479,FALSE,"contig_2732_129, contig_4493_180, contig_4493_319, contig_4493_83"
+mmlong2_lite.bin.1.149,91.98,0.86,HQ,TRUE,a,ATGCAT,4,248,72,palindrome,ATGCAT,4,248,72,FALSE,"contig_3538_364, contig_872_495, contig_872_603, contig_872_627, contig_872_734, contig_872_96"
+mmlong2_lite.bin.1.149,91.98,0.86,HQ,TRUE,a,GCAGNNNNNTACC,2,102,28,bipartite,NA,NA,NA,NA,FALSE,"contig_3538_31, contig_872_854"
+mmlong2_lite.bin.1.149,91.98,0.86,HQ,TRUE,a,GCCAG,3,8247,1396,non-palindrome,NA,NA,NA,NA,FALSE,"contig_872_491, contig_962_720"
+mmlong2_lite.bin.1.149,91.98,0.86,HQ,TRUE,a,GGTANNNNNCTG,3,257,58,bipartite,NA,NA,NA,NA,FALSE,"contig_3538_31, contig_872_854"
+mmlong2_lite.bin.1.149,91.98,0.86,HQ,TRUE,a,GTCGAC,4,162,74,palindrome,GTCGAC,4,162,74,FALSE,"contig_3538_364, contig_872_495, contig_872_603, contig_872_627, contig_872_734, contig_872_96"
+mmlong2_lite.bin.1.149,91.98,0.86,HQ,TRUE,a,TAAYNNNNNNNNTCC,2,261,77,bipartite,GGANNNNNNNNRTTA,2,232,106,FALSE,"contig_3538_31, contig_872_854"
+mmlong2_lite.bin.1.149,91.98,0.86,HQ,TRUE,a,TTCGAA,5,235,61,palindrome,TTCGAA,5,235,61,FALSE,"contig_3538_364, contig_872_495, contig_872_603, contig_872_627, contig_872_734, contig_872_96"
+mmlong2_lite.bin.1.150,90.85,0.71,HQ,TRUE,a,CAGNNNNNAGC,1,969,730,bipartite,NA,NA,NA,NA,FALSE,"contig_1726_652, contig_1726_653"
+mmlong2_lite.bin.1.150,90.85,0.71,HQ,TRUE,a,GASTC,1,4936,1966,palindrome,GASTC,1,4936,1966,TRUE,contig_5513_478
+mmlong2_lite.bin.1.150,90.85,0.71,HQ,TRUE,a,GATGG,1,3845,797,non-palindrome,CCATC,2,4207,435,TRUE,"contig_2787_699, contig_2787_701"
+mmlong2_lite.bin.1.16,99.86,0.54,HQ,TRUE,a,CCAANNNNNRTTG,3,99,3,bipartite,CAAYNNNNNTTGG,2,99,3,FALSE,"contig_3136_1205, contig_3136_1259, contig_3136_297, contig_3136_567, contig_3136_76"
+mmlong2_lite.bin.1.16,99.86,0.54,HQ,TRUE,a,CCGCAG,4,2760,67,non-palindrome,NA,NA,NA,NA,FALSE,"contig_3136_1259, contig_3136_2487, contig_3136_297"
+mmlong2_lite.bin.1.16,99.86,0.54,HQ,TRUE,a,CGCATC,3,528,904,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.16,99.86,0.54,HQ,TRUE,a,CRTACNNNNNNCTC,3,51,9,bipartite,NA,NA,NA,NA,FALSE,"contig_3136_1205, contig_3136_1259, contig_3136_297, contig_3136_567, contig_3136_76"
+mmlong2_lite.bin.1.16,99.86,0.54,HQ,TRUE,a,GAGNNNNNNRTAYG,1,102,33,bipartite,NA,NA,NA,NA,FALSE,"contig_3136_1205, contig_3136_1259, contig_3136_297, contig_3136_567, contig_3136_76"
+mmlong2_lite.bin.1.175,96.43,0.19,HQ,TRUE,a,CAAAAA,5,1466,1954,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.18,98.93,1.98,HQ,TRUE,a,GAGATG,3,2115,668,non-palindrome,CATCTC,1,2434,349,TRUE,contig_95_457
+mmlong2_lite.bin.1.18,98.93,1.98,HQ,TRUE,a,GASTC,1,5322,2350,palindrome,GASTC,1,5322,2350,FALSE,"contig_2013_684, contig_7268_374, contig_95_458, contig_95_595"
+mmlong2_lite.bin.1.18,98.93,1.98,HQ,TRUE,m,CGCG,0,8106,620,palindrome,CGCG,0,8106,620,TRUE,contig_2013_961
+mmlong2_lite.bin.1.19,99.96,0.09,HQ,TRUE,a,GATC,1,12437,1168,palindrome,GATC,1,12437,1168,FALSE,"contig_13069_316, contig_13069_328, contig_13069_404, contig_6102_132, contig_6102_134, contig_8072_1068, contig_8072_310, contig_8072_706"
+mmlong2_lite.bin.1.19,99.96,0.09,HQ,TRUE,a,GCATC,2,5995,422,non-palindrome,GATGC,1,5503,914,TRUE,contig_13069_317
+mmlong2_lite.bin.1.19,99.96,0.09,HQ,TRUE,a,GGATG,2,1863,294,non-palindrome,CATCC,1,1878,279,TRUE,contig_8072_309
+mmlong2_lite.bin.1.19,99.96,0.09,HQ,TRUE,a,TTTAAA,5,2458,143,palindrome,TTTAAA,5,2458,143,FALSE,"contig_13069_316, contig_13069_328, contig_13069_404, contig_6102_132, contig_6102_134, contig_8072_1068, contig_8072_310, contig_8072_706"
+mmlong2_lite.bin.1.2,97.49,1.08,HQ,TRUE,a,CATCNNNNNGCT,1,1108,101,bipartite,AGCNNNNNGATG,0,1116,93,FALSE,"contig_6738_351, contig_706_91"
+mmlong2_lite.bin.1.2,97.49,1.08,HQ,TRUE,a,CCAAAA,5,982,124,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.2,97.49,1.08,HQ,TRUE,a,GGCANNNNNNNNCTG,3,602,798,bipartite,CAGNNNNNNNNTGCC,1,497,903,NA,NA
+mmlong2_lite.bin.1.20,98.48,0.29,HQ,TRUE,a,CATG,1,2464,1031,palindrome,CATG,1,2464,1031,FALSE,"contig_1864_32, contig_2513_277, contig_2513_359, contig_2513_6, contig_984_21, contig_984_446"
+mmlong2_lite.bin.1.20,98.48,0.29,HQ,TRUE,a,GANNNNNNNTGCG,1,635,389,bipartite,NA,NA,NA,NA,FALSE,"contig_1864_9, contig_1865_74"
+mmlong2_lite.bin.1.23,98,0.3,HQ,TRUE,a,AGGNNNNNNTCG,0,1026,2370,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.23,98,0.3,HQ,TRUE,a,CGAYNNNNNCCT,2,809,1090,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.23,98,0.3,HQ,TRUE,m,CCWGG,1,4847,1038,palindrome,CCWGG,1,4847,1038,FALSE,"contig_3382_79, contig_605_1117, contig_605_1277, contig_605_269, contig_605_766, contig_605_914, contig_779_287, contig_852_24, contig_852_583"
+mmlong2_lite.bin.1.23,98,0.3,HQ,TRUE,m,GCCGGY,2,1743,4173,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.23,98,0.3,HQ,TRUE,m,TCCGCC,2,3697,301,non-palindrome,GGCGGA,2,3676,322,FALSE,NA
+mmlong2_lite.bin.1.24,93.74,2.55,HQ,TRUE,a,GAAGG,2,1283,163,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.24,93.74,2.55,HQ,TRUE,m,CCTTC,1,1254,192,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.25,94.05,2.5,HQ,TRUE,a,CCAAT,3,2036,771,non-palindrome,NA,NA,NA,NA,TRUE,contig_2919_61
+mmlong2_lite.bin.1.26,99.96,0.87,HQ,TRUE,a,ATGNNNNGCT,0,1313,134,bipartite,AGCNNNNCAT,0,1183,264,TRUE,contig_6057_257
+mmlong2_lite.bin.1.26,99.96,0.87,HQ,TRUE,a,GRAGAAG,5,2167,544,non-palindrome,NA,NA,NA,NA,TRUE,contig_5628_44
+mmlong2_lite.bin.1.27,99.68,0.25,HQ,TRUE,a,ACGRAG,4,2701,264,non-palindrome,NA,NA,NA,NA,TRUE,contig_1091_706
+mmlong2_lite.bin.1.3,99.98,0.2,HQ,TRUE,a,CTKMAG,4,3239,2872,palindrome,CTKMAG,4,3239,2872,FALSE,"contig_13137_76, contig_3887_354, contig_688_330, contig_688_377"
+mmlong2_lite.bin.1.3,99.98,0.2,HQ,TRUE,a,CTNCAG,4,2762,3224,non-palindrome,CTGNAG,4,2939,3047,NA,NA
+mmlong2_lite.bin.1.3,99.98,0.2,HQ,TRUE,a,TTTAAA,5,1446,143,palindrome,TTTAAA,5,1446,143,FALSE,"contig_13137_76, contig_3887_354, contig_688_330, contig_688_377"
+mmlong2_lite.bin.1.3,99.98,0.2,HQ,TRUE,m,GGCC,2,4255,366,palindrome,GGCC,2,4255,366,TRUE,contig_13137_75
+mmlong2_lite.bin.1.30,96.28,0.39,HQ,TRUE,a,GATATC,1,112,124,palindrome,GATATC,1,112,124,NA,NA
+mmlong2_lite.bin.1.30,96.28,0.39,HQ,TRUE,a,GATC,1,10015,3591,palindrome,GATC,1,10015,3591,FALSE,"contig_2313_604, contig_733_81"
+mmlong2_lite.bin.1.31,99.88,2.12,HQ,TRUE,a,AAGCCGST,0,89,128,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.31,99.88,2.12,HQ,TRUE,a,AGCNGC,0,1924,3837,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.31,99.88,2.12,HQ,TRUE,a,CAATTG,2,1180,25,palindrome,CAATTG,2,1180,25,TRUE,contig_1501_2439
+mmlong2_lite.bin.1.31,99.88,2.12,HQ,TRUE,a,CGCNAAT,5,1001,25,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.31,99.88,2.12,HQ,TRUE,a,GAGCCGST,1,53,95,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.31,99.88,2.12,HQ,TRUE,m,GCWGC,1,14407,768,palindrome,GCWGC,1,14407,768,TRUE,contig_1501_2669
+mmlong2_lite.bin.1.31,99.88,2.12,HQ,TRUE,m,RCCGGY,1,4882,937,palindrome,RCCGGY,1,4882,937,FALSE,"contig_1501_1252, contig_1501_2038, contig_1501_2665, contig_1501_399"
+mmlong2_lite.bin.1.32,99.99,0.87,HQ,TRUE,a,GCANNNNNGTC,2,1494,160,bipartite,GACNNNNNTGC,1,1321,333,FALSE,"contig_6486_418, contig_7396_42"
+mmlong2_lite.bin.1.32,99.99,0.87,HQ,TRUE,a,GCCAG,3,5154,1417,non-palindrome,NA,NA,NA,NA,FALSE,"contig_6486_400, contig_6486_418"
+mmlong2_lite.bin.1.33,99.99,0.18,HQ,TRUE,a,AGSGCC,0,233,509,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.33,99.99,0.18,HQ,TRUE,a,CGTNCAR,5,1610,199,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.33,99.99,0.18,HQ,TRUE,a,GAGGC,1,2365,389,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.33,99.99,0.18,HQ,TRUE,a,GAYANNNNNNNNTGG,3,555,99,bipartite,CCANNNNNNNNTRTC,2,580,74,TRUE,contig_537_942
+mmlong2_lite.bin.1.33,99.99,0.18,HQ,TRUE,m,GCCTC,1,2515,239,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.33,99.99,0.18,HQ,TRUE,m,GGNCC,3,1602,1393,palindrome,GGNCC,3,1602,1393,FALSE,"contig_537_1298, contig_537_916, contig_9748_64"
+mmlong2_lite.bin.1.33,99.99,0.18,HQ,TRUE,m,RGCGCY,2,2056,29,palindrome,RGCGCY,2,2056,29,FALSE,"contig_537_1298, contig_537_916, contig_9748_64"
+mmlong2_lite.bin.1.34,92.87,1.2,HQ,TRUE,a,GATC,1,2516,725,palindrome,GATC,1,2516,725,FALSE,"contig_10000_123, contig_1602_128, contig_3176_233, contig_3176_237, contig_3176_507, contig_3176_58, contig_3176_634, contig_3176_638, contig_3176_672, contig_4461_57"
+mmlong2_lite.bin.1.35,99.99,0.74,HQ,TRUE,m,TCNGG,1,5104,906,non-palindrome,CCNGA,1,4920,1090,FALSE,NA
+mmlong2_lite.bin.1.36,92.65,0.47,HQ,TRUE,a,CTNATC,3,1137,2651,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.36,92.65,0.47,HQ,TRUE,a,GAANNNNTTC,1,213,64,bipartite,GAANNNNTTC,1,213,64,FALSE,contig_2869_645
+mmlong2_lite.bin.1.36,92.65,0.47,HQ,TRUE,a,GATGAG,4,789,308,non-palindrome,NA,NA,NA,NA,TRUE,contig_2869_43
+mmlong2_lite.bin.1.36,92.65,0.47,HQ,TRUE,a,GATNNNNNNNNTGTC,1,267,178,bipartite,GACANNNNNNNNATC,3,326,119,FALSE,contig_2869_645
+mmlong2_lite.bin.1.36,92.65,0.47,HQ,TRUE,m,CTGCAG,3,1406,81,palindrome,CTGCAG,3,1406,81,FALSE,"contig_2869_550, contig_2869_819"
+mmlong2_lite.bin.1.37,96.19,3.86,HQ,TRUE,a,GAAGAC,4,410,227,non-palindrome,NA,NA,NA,NA,TRUE,contig_553_300
+mmlong2_lite.bin.1.37,96.19,3.86,HQ,TRUE,a,GGTCAGGS,4,98,97,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.37,96.19,3.86,HQ,TRUE,a,GTANNNNNNNTGCG,2,156,36,bipartite,CGCANNNNNNNTAC,3,164,28,TRUE,contig_553_167
+mmlong2_lite.bin.1.37,96.19,3.86,HQ,TRUE,m,CATCAGANC,3,39,53,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.37,96.19,3.86,HQ,TRUE,m,TCTGANYGNGS,1,103,59,ambiguous,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.41,100,0.7,HQ,TRUE,a,AGCNNNNGCT,0,2359,327,bipartite,AGCNNNNGCT,0,2359,327,FALSE,"contig_1686_283, contig_1686_910"
+mmlong2_lite.bin.1.41,100,0.7,HQ,TRUE,a,CCGAG,3,2906,719,non-palindrome,NA,NA,NA,NA,FALSE,"contig_1686_1858, contig_1686_910"
+mmlong2_lite.bin.1.41,100,0.7,HQ,TRUE,m,GCCGGC,1,1710,570,palindrome,GCCGGC,1,1710,570,FALSE,"contig_1686_1227, contig_1686_1752, contig_1686_2056, contig_1686_802, contig_3167_6"
+mmlong2_lite.bin.1.43,97.19,1.29,HQ,TRUE,a,GAAANNNNNNNNRTTG,3,432,26,bipartite,CAAYNNNNNNNNTTTC,2,437,21,FALSE,"contig_590_1532, contig_590_815, contig_590_920"
+mmlong2_lite.bin.1.43,97.19,1.29,HQ,TRUE,a,GACNNNNNNNTCG,1,807,91,bipartite,CGANNNNNNNGTC,2,793,105,FALSE,"contig_590_1532, contig_590_815, contig_590_920"
+mmlong2_lite.bin.1.43,97.19,1.29,HQ,TRUE,a,GATC,1,11712,545,palindrome,GATC,1,11712,545,FALSE,"contig_590_1601, contig_590_54, contig_590_855, contig_590_856"
+mmlong2_lite.bin.1.43,97.19,1.29,HQ,TRUE,a,GCCAG,3,1391,169,non-palindrome,NA,NA,NA,NA,FALSE,"contig_590_1532, contig_590_564, contig_590_920"
+mmlong2_lite.bin.1.46,92.47,0.63,HQ,TRUE,a,RGCYAYC,4,893,588,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.47,98.71,0.83,HQ,TRUE,a,CGAYNNNNNNNTGG,2,623,74,bipartite,CCANNNNNNNRTCG,2,621,76,FALSE,"contig_2593_117, contig_3140_18, contig_615_384"
+mmlong2_lite.bin.1.47,98.71,0.83,HQ,TRUE,a,GGACST,2,321,277,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.47,98.71,0.83,HQ,TRUE,a,SGATNNNNNNNTGG,2,412,599,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.47,98.71,0.83,HQ,TRUE,m,ACGT,1,268,74,palindrome,ACGT,1,268,74,FALSE,"contig_1008_706, contig_615_466"
+mmlong2_lite.bin.1.47,98.71,0.83,HQ,TRUE,m,GGWCC,3,2933,1333,palindrome,GGWCC,3,2933,1333,TRUE,contig_1008_63
+mmlong2_lite.bin.1.47,98.71,0.83,HQ,TRUE,m,GRACC,3,1802,3824,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.48,91.37,0.76,HQ,TRUE,a,CANNNNNNTGGC,1,728,248,bipartite,NA,NA,NA,NA,TRUE,contig_9918_22
+mmlong2_lite.bin.1.49,99.99,4.88,HQ,TRUE,a,ATTAAT,4,1565,255,palindrome,ATTAAT,4,1565,255,FALSE,"contig_1879_118, contig_3309_738, contig_334_656, contig_334_661, contig_574_1338, contig_574_352, contig_574_353"
+mmlong2_lite.bin.1.49,99.99,4.88,HQ,TRUE,m,GGNCC,3,3886,1482,palindrome,GGNCC,3,3886,1482,TRUE,contig_574_1464
+mmlong2_lite.bin.1.5,95.39,0.74,HQ,TRUE,a,GAAAGC,3,738,1144,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.5,95.39,0.74,HQ,TRUE,a,GAAGG,2,774,676,non-palindrome,NA,NA,NA,NA,TRUE,contig_6550_87
+mmlong2_lite.bin.1.5,95.39,0.74,HQ,TRUE,m,GCCGGC,1,572,1219,palindrome,GCCGGC,1,572,1219,NA,NA
+mmlong2_lite.bin.1.50,99.83,1.85,HQ,TRUE,a,AAACCYCC,1,66,26,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.50,99.83,1.85,HQ,TRUE,a,CTTAAG,4,240,22,palindrome,CTTAAG,4,240,22,FALSE,"contig_832_144, contig_832_197, contig_832_795"
+mmlong2_lite.bin.1.50,99.83,1.85,HQ,TRUE,a,GATTNNNNNNACT,1,295,100,bipartite,AGTNNNNNNAATC,0,337,58,TRUE,contig_832_1761
+mmlong2_lite.bin.1.50,99.83,1.85,HQ,TRUE,a,GCATGC,2,768,26,palindrome,GCATGC,2,768,26,FALSE,"contig_832_144, contig_832_197, contig_832_795"
+mmlong2_lite.bin.1.50,99.83,1.85,HQ,TRUE,a,GGAGG,2,2248,290,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.50,99.83,1.85,HQ,TRUE,m,CCTCC,0,1833,705,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.50,99.83,1.85,HQ,TRUE,m,TCAGG,1,4598,630,non-palindrome,CCTGA,1,5115,113,FALSE,NA
+mmlong2_lite.bin.1.51,99.96,0.24,HQ,TRUE,a,CAAGNNNNNTAR,2,449,215,bipartite,NA,NA,NA,NA,FALSE,"contig_6275_356, contig_6275_416, contig_6275_434"
+mmlong2_lite.bin.1.51,99.96,0.24,HQ,TRUE,a,TCCGGA,5,3979,1384,palindrome,TCCGGA,5,3979,1384,FALSE,"contig_12754_229, contig_6275_474"
+mmlong2_lite.bin.1.51,99.96,0.24,HQ,TRUE,a,TTANNNNNCTTG,2,446,47,bipartite,NA,NA,NA,NA,FALSE,"contig_6275_356, contig_6275_416, contig_6275_434"
+mmlong2_lite.bin.1.53,99.8,0.12,HQ,TRUE,a,GCATC,2,3779,275,non-palindrome,GATGC,1,3171,883,TRUE,contig_2125_129
+mmlong2_lite.bin.1.55,93.07,1.04,HQ,TRUE,a,GATC,1,8629,2392,palindrome,GATC,1,8629,2392,FALSE,"contig_11994_505, contig_569_279, contig_569_281"
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,a,CAYCNNNNCAT,1,736,619,bipartite,ATGNNNNGRTG,0,805,550,FALSE,"contig_4987_457, contig_4987_76, contig_53_1132, contig_53_1628, contig_53_265, contig_7589_102"
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,a,CYRANNNNNNNRTC,3,1398,2287,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,a,GATC,1,6319,968,palindrome,GATC,1,6319,968,FALSE,"contig_4113_100, contig_4113_111, contig_4113_160, contig_53_767"
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,a,GAYNNNNNNNTTRG,1,1119,552,bipartite,NA,NA,NA,NA,FALSE,"contig_4987_457, contig_4987_76, contig_53_1132, contig_53_1628, contig_53_265, contig_7589_102"
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,a,SGAGNNNNNNNNCTC,2,190,283,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,m,CRTCGAB,3,1681,1197,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,m,GTCGAB,2,1686,2112,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,m,VTCGAY,2,3308,4502,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,m,YMTCGAGNG,3,94,63,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.56,99.99,0.31,HQ,TRUE,m,YRTCGABG,3,1259,499,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.58,99.93,0.25,HQ,TRUE,a,GAYNNNNNNTAYNG,1,1229,157,ambiguous,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.6,99.95,0.32,HQ,TRUE,m,GCAGC,1,2810,6321,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.60,90.59,0,HQ,TRUE,a,AACCA,4,876,511,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.60,90.59,0,HQ,TRUE,a,CATG,1,5455,908,palindrome,CATG,1,5455,908,FALSE,"contig_14042_5, contig_2098_94, contig_2098_95, contig_3726_297, contig_3726_308, contig_3726_66, contig_9903_289"
+mmlong2_lite.bin.1.60,90.59,0,HQ,TRUE,a,GAGGAG,4,1008,487,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.60,90.59,0,HQ,TRUE,a,GTNAGG,3,1184,294,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.1.61,99.99,0.21,HQ,TRUE,a,CATG,1,4276,94,palindrome,CATG,1,4276,94,FALSE,"contig_1076_1209, contig_1076_1386, contig_1076_1873, contig_1076_1874, contig_1076_42"
+mmlong2_lite.bin.1.61,99.99,0.21,HQ,TRUE,a,GANTC,1,4657,4029,palindrome,GANTC,1,4657,4029,FALSE,"contig_1076_1209, contig_1076_1386, contig_1076_1873, contig_1076_1874, contig_1076_42"
+mmlong2_lite.bin.1.61,99.99,0.21,HQ,TRUE,a,GATC,1,3775,611,palindrome,GATC,1,3775,611,TRUE,"contig_1076_1462, contig_1076_1463"
+mmlong2_lite.bin.1.62,93.99,0.3,HQ,TRUE,a,CRANNNNNTCG,2,5236,2954,bipartite,NA,NA,NA,NA,TRUE,contig_616_52
+mmlong2_lite.bin.1.62,93.99,0.3,HQ,TRUE,a,GGATC,2,5059,932,non-palindrome,GATCC,1,5038,953,TRUE,contig_2002_197
+mmlong2_lite.bin.1.63,99.77,0,HQ,TRUE,a,CTTCAG,4,644,320,non-palindrome,CTGAAG,4,801,163,TRUE,contig_1241_66
+mmlong2_lite.bin.1.63,99.77,0,HQ,TRUE,a,TGAYNNNNNNNTGG,2,231,265,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.63,99.77,0,HQ,TRUE,m,GRCGYC,2,4212,469,palindrome,GRCGYC,2,4212,469,FALSE,"contig_11591_287, contig_1241_106, contig_3310_143"
+mmlong2_lite.bin.1.7,99.65,3.31,HQ,TRUE,a,CTKMAG,4,4165,344,palindrome,CTKMAG,4,4165,344,FALSE,"contig_5855_1575, contig_5855_1641, contig_5855_1663, contig_5855_1739, contig_5855_2516"
+mmlong2_lite.bin.1.7,99.65,3.31,HQ,TRUE,a,GTAYNNNNNNCGT,2,321,54,bipartite,ACGNNNNNNRTAC,0,354,21,FALSE,"contig_5855_1555, contig_5855_2482, contig_5855_2517"
+mmlong2_lite.bin.1.7,99.65,3.31,HQ,TRUE,a,YGAYNNNNNNTACG,2,101,104,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.7,99.65,3.31,HQ,TRUE,m,GGNCC,3,2207,626,palindrome,GGNCC,3,2207,626,TRUE,contig_5855_2486
+mmlong2_lite.bin.1.89,100,3.48,HQ,TRUE,a,ATTAAT,4,905,76,palindrome,ATTAAT,4,905,76,FALSE,"contig_532_1446, contig_532_36"
+mmlong2_lite.bin.1.89,100,3.48,HQ,TRUE,a,CCCAAT,4,509,20,non-palindrome,NA,NA,NA,NA,FALSE,contig_532_385
+mmlong2_lite.bin.1.89,100,3.48,HQ,TRUE,a,CCTAAT,4,345,27,non-palindrome,NA,NA,NA,NA,FALSE,contig_532_385
+mmlong2_lite.bin.1.89,100,3.48,HQ,TRUE,m,CCWGG,1,2578,4475,palindrome,CCWGG,1,2578,4475,NA,NA
+mmlong2_lite.bin.1.89,100,3.48,HQ,TRUE,m,GGNCC,3,2152,2223,palindrome,GGNCC,3,2152,2223,NA,NA
+mmlong2_lite.bin.1.9,98.42,0.26,HQ,TRUE,a,CCAAAA,5,680,163,non-palindrome,NA,NA,NA,NA,FALSE,contig_783_76
+mmlong2_lite.bin.1.9,98.42,0.26,HQ,TRUE,a,CTGCAG,4,629,45,palindrome,CTGCAG,4,629,45,FALSE,"contig_1274_286, contig_3195_23, contig_499_261"
+mmlong2_lite.bin.1.9,98.42,0.26,HQ,TRUE,a,GAGCC,1,3153,1017,non-palindrome,NA,NA,NA,NA,FALSE,contig_783_76
+mmlong2_lite.bin.1.9,98.42,0.26,HQ,TRUE,a,RGATCY,2,1915,253,palindrome,RGATCY,2,1915,253,TRUE,contig_3195_406
+mmlong2_lite.bin.1.9,98.42,0.26,HQ,TRUE,a,RTCANNNNNNNTCC,3,230,52,bipartite,GGANNNNNNNTGAY,2,229,53,TRUE,contig_2842_132
+mmlong2_lite.bin.2.1,80.17,0.26,MQ,TRUE,a,CAGCAG,4,1878,344,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.1,80.17,0.26,MQ,TRUE,a,GATGC,1,3775,1459,non-palindrome,NA,NA,NA,NA,TRUE,contig_6370_93
+mmlong2_lite.bin.2.1,80.17,0.26,MQ,TRUE,a,GCATY,2,4632,8244,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.1,80.17,0.26,MQ,TRUE,a,GSATC,2,4482,1471,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.100,86.87,5.3,MQ,TRUE,a,ATTAAT,4,440,337,palindrome,ATTAAT,4,440,337,TRUE,contig_3549_304
+mmlong2_lite.bin.2.11,81.2,0.72,MQ,TRUE,a,AGACC,2,1229,989,non-palindrome,NA,NA,NA,NA,FALSE,"contig_1537_12, contig_1707_103"
+mmlong2_lite.bin.2.11,81.2,0.72,MQ,TRUE,a,CACCAT,4,1269,43,non-palindrome,NA,NA,NA,NA,FALSE,"contig_1537_12, contig_1707_103"
+mmlong2_lite.bin.2.11,81.2,0.72,MQ,TRUE,a,CTGGAG,4,460,67,non-palindrome,CTCCAG,4,495,32,FALSE,"contig_1537_12, contig_1707_103"
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,a,CAGCAG,4,1614,1260,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,a,CCANNNNNNNTGG,2,656,110,bipartite,CCANNNNNNNTGG,2,656,110,FALSE,contig_3586_48
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,a,GATC,1,27218,3174,palindrome,GATC,1,27218,3174,TRUE,contig_3173_294
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,a,GATSNNNNNNNTAA,1,638,128,bipartite,NA,NA,NA,NA,FALSE,contig_3586_48
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,a,SATGNNNNNNNTAA,1,299,313,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,a,TTANNNNNNNCATC,2,308,82,bipartite,NA,NA,NA,NA,FALSE,contig_3586_48
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,m,CCTGGC,1,421,625,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.16,89.76,0,MQ,TRUE,m,GCCWGG,2,862,1179,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.17,98.62,0.32,HQ,TRUE,a,GCAANNNNNNCTG,3,321,31,bipartite,NA,NA,NA,NA,TRUE,contig_1817_269
+mmlong2_lite.bin.2.17,98.62,0.32,HQ,TRUE,a,MAGNNNNNNTTGC,1,298,384,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.22,64.47,6.42,MQ,TRUE,a,CTGCAG,4,749,321,palindrome,CTGCAG,4,749,321,TRUE,"contig_1577_179, contig_918_194"
+mmlong2_lite.bin.2.25,86.03,2.41,MQ,TRUE,a,CAGCNNNNNNGGT,1,262,213,bipartite,ACCNNNNNNGCTG,0,265,210,TRUE,contig_6946_146
+mmlong2_lite.bin.2.37,85.98,4.02,MQ,TRUE,a,GCATC,2,4694,706,non-palindrome,NA,NA,NA,NA,TRUE,contig_1245_1187
+mmlong2_lite.bin.2.38,86.07,0,MQ,TRUE,m,GGCGCC,2,443,281,palindrome,GGCGCC,2,443,281,TRUE,contig_538_115
+mmlong2_lite.bin.2.42,84.42,4.18,MQ,TRUE,a,CCAAAA,5,869,332,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.48,82.77,4.97,MQ,TRUE,m,CCTGG,1,2317,2462,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.5,71.45,0.09,MQ,TRUE,a,CACNNNNNNNRTCG,1,488,123,bipartite,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.5,71.45,0.09,MQ,TRUE,a,CRAYNNNNNNNGTG,2,460,385,bipartite,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.5,71.45,0.09,MQ,TRUE,a,GTRATC,3,964,401,non-palindrome,NA,NA,NA,NA,TRUE,contig_1348_399
+mmlong2_lite.bin.2.5,71.45,0.09,MQ,TRUE,m,GCCGGC,1,901,227,palindrome,GCCGGC,1,901,227,FALSE,"contig_1348_423, contig_1348_446, contig_1348_488, contig_1348_50"
+mmlong2_lite.bin.2.51,99.99,6.57,MQ,TRUE,m,GGCGCC,2,2669,2310,palindrome,GGCGCC,2,2669,2310,TRUE,contig_6764_20
+mmlong2_lite.bin.2.52,80.65,0.78,MQ,TRUE,a,CCANNNNNNNTANG,2,183,340,ambiguous,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.52,80.65,0.78,MQ,TRUE,a,CTGAAGSNS,4,227,452,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.52,80.65,0.78,MQ,TRUE,a,GGTNACC,4,560,284,palindrome,GGTNACC,4,560,284,FALSE,"contig_2359_165, contig_2359_233, contig_690_288"
+mmlong2_lite.bin.2.53,99.71,6,MQ,TRUE,a,GACYNNNNNNRGT,1,410,190,bipartite,ACYNNNNNNRGTC,0,467,133,FALSE,"contig_1080_143, contig_2327_65, contig_2340_561, contig_2340_58"
+mmlong2_lite.bin.2.53,99.71,6,MQ,TRUE,a,GTAANNNNNNTGC,3,160,58,bipartite,GCANNNNNNTTAC,2,157,61,FALSE,"contig_1080_143, contig_2327_65, contig_2340_561, contig_2340_58"
+mmlong2_lite.bin.2.54,87.89,0.52,MQ,TRUE,a,CAAGNAG,5,658,849,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.59,82,1.61,MQ,TRUE,a,GCTAAC,4,200,71,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.76,86.98,0.08,MQ,TRUE,a,CTGCAG,4,1018,69,palindrome,CTGCAG,4,1018,69,TRUE,contig_4253_442
+mmlong2_lite.bin.2.80,81.6,0.2,MQ,TRUE,a,GGTNACC,4,200,11,palindrome,GGTNACC,4,200,11,FALSE,"contig_1853_16, contig_4937_314"
+mmlong2_lite.bin.2.80,81.6,0.2,MQ,TRUE,a,RACNNNGTC,1,1307,896,bipartite,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.80,81.6,0.2,MQ,TRUE,a,TTTAAA,5,112,23,palindrome,TTTAAA,5,112,23,FALSE,"contig_1853_16, contig_4937_314"
+mmlong2_lite.bin.2.80,81.6,0.2,MQ,TRUE,m,GGCGCC,2,1347,40,palindrome,GGCGCC,2,1347,40,TRUE,contig_1853_510
+mmlong2_lite.bin.2.83,85.53,1.28,MQ,TRUE,m,GGACC,3,771,483,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.84,87.63,0.27,MQ,TRUE,a,GAAGG,2,4016,1289,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.84,87.63,0.27,MQ,TRUE,a,GAGCAG,4,1603,266,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.84,87.63,0.27,MQ,TRUE,m,CCTTC,1,3548,1715,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.2.9,78.01,0.37,MQ,TRUE,a,CAAGRAG,5,332,175,non-palindrome,NA,NA,NA,NA,FALSE,contig_407_312
+mmlong2_lite.bin.2.9,78.01,0.37,MQ,TRUE,a,GCAGG,2,5501,1553,non-palindrome,NA,NA,NA,NA,FALSE,contig_407_312
+mmlong2_lite.bin.2.9,78.01,0.37,MQ,TRUE,a,GGNSCANG,5,440,659,ambiguous,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.9,78.01,0.37,MQ,TRUE,a,GTANNNNNNCTTC,2,302,79,bipartite,GAAGNNNNNNTAC,2,296,85,FALSE,"contig_2977_63, contig_407_312"
+mmlong2_lite.bin.2.9,78.01,0.37,MQ,TRUE,m,GGNCC,3,2695,1040,palindrome,GGNCC,3,2695,1040,TRUE,contig_1021_191
+mmlong2_lite.bin.2.9,78.01,0.37,MQ,TRUE,m,TTCCGGAA,3,321,374,palindrome,TTCCGGAA,3,321,374,NA,NA
+mmlong2_lite.bin.2.92,96.27,5.65,MQ,TRUE,a,GGANNNNNNNTCC,2,1506,1134,bipartite,GGANNNNNNNTCC,2,1506,1134,FALSE,"contig_7475_6, contig_8194_74, contig_9307_41"
+mmlong2_lite.bin.2.95,74.87,0.2,MQ,TRUE,m,GGCC,2,529,1185,palindrome,GGCC,2,529,1185,NA,NA
+mmlong2_lite.bin.2.96,92.24,2.87,HQ,TRUE,a,GGATG,2,2142,1370,non-palindrome,CATCC,1,2206,1306,TRUE,contig_5553_62
+mmlong2_lite.bin.2.96,92.24,2.87,HQ,TRUE,m,TCCGCC,2,2376,617,non-palindrome,GGCGGA,2,2288,705,FALSE,NA
+mmlong2_lite.bin.2.98,88.53,0.22,MQ,TRUE,a,GGATC,2,2981,49,non-palindrome,GATCC,1,2966,64,TRUE,contig_3892_262
+mmlong2_lite.bin.3.132,90.16,3.48,HQ,TRUE,a,GGATC,2,2361,693,non-palindrome,GATCC,1,2324,730,FALSE,NA
+mmlong2_lite.bin.3.132,90.16,3.48,HQ,TRUE,a,TGATNNNNNNNTCG,2,294,242,bipartite,NA,NA,NA,NA,TRUE,contig_3893_241
+mmlong2_lite.bin.3.148,81.9,3.09,MQ,TRUE,a,RGATCY,2,3799,1146,palindrome,RGATCY,2,3799,1146,TRUE,contig_13799_12
+mmlong2_lite.bin.3.18,88.37,7.34,MQ,TRUE,a,AASCTGG,0,376,788,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.18,88.37,7.34,MQ,TRUE,a,GAANNNNNNNNTARNG,2,483,308,ambiguous,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.3.18,88.37,7.34,MQ,TRUE,m,GCTGG,1,6619,2407,non-palindrome,CCAGC,1,6142,2884,FALSE,NA
+mmlong2_lite.bin.3.26,66.65,0.1,MQ,TRUE,m,CCWGG,1,4444,445,palindrome,CCWGG,1,4444,445,TRUE,contig_3212_58
+mmlong2_lite.bin.3.39,89.07,4.83,MQ,TRUE,a,AGCNNNNCGT,0,655,700,bipartite,ACGNNNNGCT,0,713,642,NA,NA
+mmlong2_lite.bin.3.39,89.07,4.83,MQ,TRUE,a,CCANNNNNNRTC,2,917,830,bipartite,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.3.39,89.07,4.83,MQ,TRUE,m,CGCG,0,6801,1215,palindrome,CGCG,0,6801,1215,TRUE,contig_1837_406
+mmlong2_lite.bin.3.6,77.34,2.96,MQ,TRUE,a,YTCCAG,4,2709,736,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.3.9,72.46,7.25,MQ,TRUE,m,TCCGGA,1,2129,1835,palindrome,TCCGGA,1,2129,1835,TRUE,contig_856_70
+mmlong2_lite.bin.3.92,83.57,2.72,MQ,TRUE,a,GATC,1,13091,2244,palindrome,GATC,1,13091,2244,FALSE,"contig_1811_446, contig_1815_271, contig_560_14, contig_563_6"
+mmlong2_lite.bin.3.92,83.57,2.72,MQ,TRUE,a,TGRYCA,5,3254,435,palindrome,TGRYCA,5,3254,435,FALSE,"contig_1811_446, contig_1815_271, contig_560_14, contig_563_6"
+mmlong2_lite.bin.3.92,83.57,2.72,MQ,TRUE,a,YAGNNNNNNCTR,1,1712,1389,bipartite,YAGNNNNNNCTR,1,1712,1389,FALSE,NA
+mmlong2_lite.bin.3.99,82.64,4.13,MQ,TRUE,a,GCAATC,3,1298,287,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,a,CCTSGATG,5,157,143,non-palindrome,NA,NA,NA,NA,FALSE,"contig_5081_1862, contig_5081_215"
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,a,GAAAGA,3,1709,279,non-palindrome,NA,NA,NA,NA,FALSE,"contig_5081_1862, contig_5081_215"
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,a,GGATG,2,1025,83,non-palindrome,CATCC,1,1035,73,FALSE,"contig_5081_1862, contig_5081_215"
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,m,ATCGAK,2,1125,1342,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,m,CCTCGA,3,1203,1320,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,m,CTCGAK,2,2247,877,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,m,GCTCGAW,3,314,649,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.1,98.58,0.59,HQ,TRUE,m,TCGAGS,1,1704,2775,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.10,98.25,0.26,HQ,TRUE,a,CCANNNNNNAGT,2,269,57,bipartite,ACTNNNNNNTGG,0,267,59,FALSE,"contig_568_1401, contig_568_1445, contig_568_837"
+mmlong2_lite.bin.c.10,98.25,0.26,HQ,TRUE,a,GATC,1,3166,563,palindrome,GATC,1,3166,563,TRUE,"contig_568_659, contig_568_2124"
+mmlong2_lite.bin.c.10,98.25,0.26,HQ,TRUE,a,TAAANNNNNTCC,2,255,44,bipartite,GGANNNNNTTTA,2,245,54,FALSE,"contig_568_1401, contig_568_1445, contig_568_837"
+mmlong2_lite.bin.c.11,99.17,1.34,HQ,TRUE,a,CATG,1,3018,91,palindrome,CATG,1,3018,91,FALSE,"contig_771_1767, contig_771_1847, contig_771_1848, contig_771_199, contig_771_512, contig_771_839"
+mmlong2_lite.bin.c.11,99.17,1.34,HQ,TRUE,a,GATC,1,2912,253,palindrome,GATC,1,2912,253,TRUE,contig_771_510
+mmlong2_lite.bin.c.11,99.17,1.34,HQ,TRUE,a,GGNANNNNNNNTAC,3,908,114,ambiguous,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.c.11,99.17,1.34,HQ,TRUE,a,RCTATC,3,1335,52,non-palindrome,NA,NA,NA,NA,FALSE,"contig_771_1460, contig_771_799"
+mmlong2_lite.bin.c.11,99.17,1.34,HQ,TRUE,m,CCGG,1,6364,7,palindrome,CCGG,1,6364,7,FALSE,"contig_771_199, contig_771_839, contig_771_858, contig_771_860"
+mmlong2_lite.bin.c.12,99.94,0.08,HQ,TRUE,a,CAAYNNNNNCTGG,2,144,4,bipartite,NA,NA,NA,NA,FALSE,contig_5243_1423
+mmlong2_lite.bin.c.12,99.94,0.08,HQ,TRUE,a,CMAGNNNNNGTTG,2,95,77,bipartite,NA,NA,NA,NA,FALSE,contig_5243_1423
+mmlong2_lite.bin.c.12,99.94,0.08,HQ,TRUE,a,GAGGAC,4,781,254,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.c.12,99.94,0.08,HQ,TRUE,m,GATC,3,15691,4638,palindrome,GATC,3,15691,4638,FALSE,NA
+mmlong2_lite.bin.c.13,87.56,0.57,MQ,TRUE,m,GATC,3,7729,1710,palindrome,GATC,3,7729,1710,TRUE,contig_3961_665
+mmlong2_lite.bin.c.14,100,0.04,HQ,TRUE,a,CGANNNNNTCG,2,687,1588,bipartite,CGANNNNNTCG,2,687,1588,NA,NA
+mmlong2_lite.bin.c.2,100,3.67,HQ,TRUE,a,GTAAG,3,1123,137,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.c.2,100,3.67,HQ,TRUE,a,TGAANNNNNNGRT,3,720,78,bipartite,AYCNNNNNNTTCA,0,647,151,TRUE,contig_3849_1174
+mmlong2_lite.bin.c.3,100,0.34,HQ,TRUE,a,CAAGG,1,861,165,non-palindrome,NA,NA,NA,NA,FALSE,NA
+mmlong2_lite.bin.c.3,100,0.34,HQ,TRUE,a,GATC,1,904,667,palindrome,GATC,1,904,667,FALSE,"contig_8265_1025, contig_8265_1151, contig_8265_222, contig_8265_268, contig_8265_269, contig_8265_273, contig_8265_704, contig_8265_705"
+mmlong2_lite.bin.c.7,99.94,0.11,HQ,TRUE,a,ACAAAT,4,3529,185,non-palindrome,NA,NA,NA,NA,TRUE,contig_6327_136
+mmlong2_lite.bin.c.7,99.94,0.11,HQ,TRUE,m,GGCC,2,2471,322,palindrome,GGCC,2,2471,322,TRUE,contig_6327_250
+mmlong2_lite.bin.c.7,99.94,0.11,HQ,TRUE,m,GYCCGGW,3,413,970,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.7,99.94,0.11,HQ,TRUE,m,YCCGGRC,2,405,470,non-palindrome,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,ACACNNNNNTTA,2,51,31,bipartite,NA,NA,NA,NA,FALSE,"contig_5944_186, contig_5944_2049, contig_5944_2276, contig_5944_52"
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,CAAGAA,5,737,594,non-palindrome,NA,NA,NA,NA,TRUE,contig_5944_1540
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,CMACNNNNNTTA,2,99,177,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,RAATTY,2,8199,516,palindrome,RAATTY,2,8199,516,TRUE,contig_5944_2104
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,RTAYNNNNNRTCC,2,388,56,bipartite,GGAYNNNNNRTAY,2,410,34,FALSE,"contig_5944_186, contig_5944_2049, contig_5944_2276, contig_5944_52"
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,TAANNNNNGTG,2,308,102,bipartite,NA,NA,NA,NA,FALSE,"contig_5944_186, contig_5944_2049, contig_5944_2276, contig_5944_52"
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,TCACNNNNNTTA,2,53,32,bipartite,NA,NA,NA,NA,FALSE,"contig_5944_186, contig_5944_2049, contig_5944_2276, contig_5944_52"
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,TGACNNNNNNNNTGAA,2,64,104,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.9,100,0.24,HQ,TRUE,a,TTCANNNNNNNNGTC,3,171,322,bipartite,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.11,99.73,0.47,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.115,96.13,0.17,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.128,96,1.06,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.132,100,4.71,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.136,100,1.47,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.141,96.72,3.57,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.142,99.98,0.44,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.148,91.17,0.4,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.153,92.63,1.05,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.163,90.02,3.89,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.181,91.86,2.59,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.29,100,0.32,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.44,96.74,0.08,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.59,93.59,1.34,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.68,90.07,3.18,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.1.69,90.18,0.24,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.101,85,4.48,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.12,85.18,0.25,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.13,55.64,1.53,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.14,85.36,0.81,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.15,89.86,4.38,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.18,99.21,7.53,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.19,65,3.99,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.2,58.63,1.43,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.29,99.51,1.37,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.3,82.29,0,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.31,93.6,8.18,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.32,55.21,5.81,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.33,84.15,1.97,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.34,87.79,2.96,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.35,89.32,2.18,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.36,85.14,1.23,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.39,83.61,3.24,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.4,83.44,2.4,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.41,84.04,3.31,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.43,82.83,1.14,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.44,85.37,0.25,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.45,88.8,1.84,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.46,82.2,0.58,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.47,81.91,2.75,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.49,85.76,2.47,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.50,80.11,1.07,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.56,84.3,2.66,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.57,81.37,2.13,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.58,74.65,2.84,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.60,90.76,0.33,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.61,76.28,0.41,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.62,71.88,3.28,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.63,85.04,0.03,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.64,68.71,4.23,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.65,71.27,1.49,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.66,63.01,2.42,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.67,70.44,8.75,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.68,63.84,1.96,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.69,63.64,2.99,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.7,72.78,1.46,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.70,60.31,0.23,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.71,78.57,0.53,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.73,62.67,4.8,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.75,53.74,0.84,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.78,53.23,0.51,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.8,83.21,0.14,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.81,91.25,3.11,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.85,79.47,0.04,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.88,68.56,1.2,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.89,84.3,1.21,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.94,75.95,0.55,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.2.99,84.66,1.51,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.110,80.16,1.48,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.120,71.84,0.38,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.127,59.85,3.77,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.40,80.31,6.75,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.41,68.15,8.33,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.5,86.31,5.42,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.50,56.48,4.45,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.55,70.82,1.78,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.58,74.52,0.59,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.67,64.23,7.23,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.3.78,79.77,2.08,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.4.113,51.93,0.48,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.4.121,70.48,6.8,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.4.20,69.56,8.26,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.4.52,52.33,7.67,MQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+mmlong2_lite.bin.c.8,96.72,1.64,HQ,FALSE,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
