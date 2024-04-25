@@ -30,6 +30,7 @@ library(grid)
 library(scales)
 library(gridExtra)
 library(gtable)
+library(cowplot)
 ```
 
 # Figure panel 1
@@ -179,7 +180,7 @@ zymo_binmotifs <- fread("../data/ZymoHMW/nanomotif/bin-motifs.tsv")
 # prepare monoculture motifs
 
 gb_motifs_direct <- fread("../data/p_thermoglucosidasius/nanomotif/motifs.tsv")[, directly := TRUE]
-gb_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/Geobacillus_3/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+gb_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/Geobacillus_3/mtase_linker/mtase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
 gb_motifs <- merge(
   all_motifs_score[sample == "gb"], gb_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
   , directly := fifelse(is.na(directly), indirect_label, direct_label)
@@ -205,7 +206,7 @@ gb_motifs[, motif_pos := paste0(contig, motif, mod_type)][
 ]
 
 ec_motifs_direct <- fread("../data/e_coli_K12/nanomotif/motifs.tsv")[, directly := TRUE]
-ec_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/E.coli_K12_stat_3/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+ec_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/E.coli_K12_stat_3/mtase_linker/mtase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
 ec_motifs <- merge(
   all_motifs_score[sample == "ec"], ec_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
   , directly := fifelse(is.na(directly), indirect_label, direct_label)
@@ -224,7 +225,7 @@ ec_motifs[, motif_pos := paste0(contig, motif, mod_type)][
 ]
 
 mr_motifs_direct <- fread("../data/m_ruber/nanomotif/motifs.tsv")[, directly := TRUE]
-mr_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/M.ruber_1/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+mr_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/M.ruber_1/mtase_linker/mtase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
 mr_motifs <-  merge(
   all_motifs_score[sample == "mr"], mr_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
   , directly := fifelse(is.na(directly), indirect_label, direct_label)
@@ -356,7 +357,7 @@ mono_and_zymo_heatmap
 
 ```{r}
 main_theme <- theme(
-    text = element_text(family = "sans", size = 1),
+    #text = element_text(family = "sans", size = 1),
     plot.title = element_text(size = 5, family = "sans"),
     strip.text = element_markdown(size = 5, family = "sans"),
     strip.text.y.right = element_markdown(face = "bold", size = 6, family = "sans"),
@@ -374,14 +375,14 @@ main_theme <- theme(
 
 p2 <- bin_consensus_benchmark + main_theme + theme(legend.position = "bottom",
                                                    legend.margin = margin(b = 3, unit = "pt"))
-p3 <- mono_and_zymo_heatmap + main_theme + theme(legend.key.size = unit(0.2, "cm"),
+p3 <- mono_and_zymo_heatmap & main_theme & theme(legend.key.size = unit(0.2, "cm"),
                                                  #legend.position = "top",
                                                  #legend.spacing.x = unit(0.01, "cm"),
                                                  legend.justification = c(1, 0),
                                                  legend.box.just = "right",
                                                  legend.margin = margin(t = -5, unit = "pt"),
-                                                 axis.text.y = element_markdown(size=6, family = "sans"), # Rotate x-axis labels to 90 degrees
-                                                  axis.text.x = element_markdown(size = 6, family = "sans")
+                                                 axis.text.y = element_markdown(size=5, family = "sans"), # Rotate x-axis labels to 90 degrees
+                                                  axis.text.x = element_markdown(size = 5, family = "sans")
 )
 
 p4 <- hm_combined + main_theme + theme(legend.position = "bottom", 
@@ -397,7 +398,7 @@ p4_grob <- ggplotGrob(p4)
 ### Setting print layout for panel 1
 
 ```{r}
-pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_1.pdf", height = 5.51181102, width = 7.08661417, family = "sans")
+pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_1_1.pdf", height = 5.51181102, width = 7.08661417)
 
 layout1 <- grid.layout(nrow = 2, ncol = 2,
                       widths = unit(c(9, 11), "null"),
@@ -474,8 +475,8 @@ main_theme <- theme(
     strip.text.y.right = element_markdown(face = "bold", size = 5, family = "sans"),
     axis.text.y = element_markdown(size=5, family = "sans"), # Rotate x-axis labels to 90 degrees
     axis.text.x = element_markdown(size = 5, family = "sans"),
-    axis.title.x = element_text(size = 5, family = "sans"),
-    axis.title.y = element_text(size = 5, family = "sans"),
+    axis.title.x = element_text(size = 7, family = "sans"),
+    axis.title.y = element_text(size = 7, family = "sans"),
     axis.ticks = element_line(linewidth = 0.1),
     legend.title = element_text(size = 5, family = "sans"),
     legend.text = element_text(size = 5, family = "sans"),
@@ -504,19 +505,23 @@ p4 <- inclusion_gc_cov & main_theme + theme(legend.position = "bottom") & theme(
                                                  legend.margin = margin(t = -3, unit = "pt"))
 
 
+p5 <- p1 + p4 + plot_layout(guides = 'collect') & theme(legend.position = "bottom")
+
 p1_grob <- as_grob(p1)
 p2_grob <- as_grob(p2)
 p3_grob <- as_grob(p3)
 p4_grob <- as_grob(p4)
+p5_grob <- as_grob(p5)
 
 
 tb <- data.frame(
-  row.names = c("# MAGs\n(HQ)", "# Motifs\n(HQ)", "Motifs/MAG\n(HQ)", "%MAGs w/\nmotif (HQ)", "# MTases*", "# MTases in\nRM-systems*", "Linked motifs*\n(%motifs)", "Contamination\n(#contigs (HQ))", "Contigs included\n(#contigs (MGEs))"),
-  Monocultures = c("10 (10", "31 (31)", "3 (3)", "100% (100%)", "54", "21", "24 (77%)", "-", "-"),
-  `Fecal(Simple)` = c("14 (8)", "27 (21)", "1.9 (2.5)", "85% (100%)", "58", "15", "11 (55%)", "11 (0)", "135 (92)"),
-  `Fecal(Complex)` = c("190 (97)", "245 (196)", "1.3 (2)", "56% (75%)", "605", "247", "50 (26%)", "179 (20)", "725 (324)"),
-    `Anerobic Digestor` = c("423 (230)", "667 (495)", "1.6 (2.2)", "60% (77%)", "1445", "583", "57 (12%)", "745 (119)", "3489 (899)"),
-  `HQMAGs` = c("", "", "", "", "", "","","", "") 
+  row.names = c("# Sequenced\nbases (Gbp)", "# Contigs", "Contig N50\n(Kbp)", "# MAGs\n(HQ)", "# Motifs\n(HQ)", "Motifs/MAG\n(HQ)", "% MAGs w/\nmotif (HQ)", "# MTases*", "# MTases in\nRM-systems*", "Linked motifs*\n(%motifs)", "Contamination\n(#contigs (HQ))", "Contigs included\n(#contigs (MGEs))"),
+  Monocultures = c("-", "-", "-", "10 (10)", "31 (31)", "3.1 (3.1)", "100% (100%)", "52", "21", "24 (77%)", "-", "-"),
+  `Fecal(Simple)` = c("4.2", "2034", "184.9", "14 (8)", "25 (19)", "1.8 (2.4)", "85% (100%)", "32", "9", "6 (32%)", "11 (0)", "135 (27)"),
+  `Fecal(Complex)` = c("49.1", "11625", "202.4", "190 (93)", "245 (192)", "1.3 (2.1)", "56% (75%)", "591", "247", "51 (27%)", "179 (20)", "712 (518)"),
+  `Anerobic Digester` = c("176.0", "65077", "98.4", "423 (230)", "667 (486)", "1.6 (2.1)", "60% (77%)", "1391", "583", "57 (12%)", "771 (121)", "3498 (744)"),
+  `Soil` = c("206.6", "374780", "51.7", "552 (66)", "173 (26)", "0.3 (0.4)", "30% (35%)", "105", "27", "8 (31%)", "435 (7)", "12472 (3399)"),
+  `HQMAGs` = c("","", "","", "", "", "", "", "","","", "") 
 )
 
 
@@ -532,9 +537,9 @@ table_grob <- tableGrob(tb,
 
 ttb <- t(tb)
 
-colnames(ttb) <- c("# MAGs\n(HQ)", "# Motifs\n(HQ)", "Motifs/MAG\n(HQ)", "%MAGs w/\nmotif (HQ)", "# MTases*", "# MTases in\nRM-systems*", "Linked motifs*\n(%motifs)", "Contamination\n(#contigs (HQ))", "Contigs included\n(#contigs (MGEs))")
+colnames(ttb) <- c("# Sequenced\nbases (Gbp)","# Contigs", "Contig N50\n(Kbp)", "# MAGs\n(HQ)", "# Motifs\n(HQ)", "Motifs/MAG\n(HQ)", "% MAGs w/\nmotif (HQ)", "# MTases*", "# MTases in\nRM-systems*", "Linked motifs*\n(%motifs)", "Contamination\n(#contigs (HQ))", "Contigs included\n(#contigs (MGEs))")
 
-rownames(ttb) <- c("Monocultures", "Fecal Simples", "Fecal Complex", "Anaerobic Digestor", "*in HQ-MAGs")
+rownames(ttb) <- c("Monocultures", "Simple fecal", "Complex fecal", "Anaerobic digestor", "Soil", "*in HQ-MAGs")
 
 tt1 <- ttheme_minimal(core = list(fg_params = list(fontsize = 5, fontface = "plain", fontfamily = "sans"), bg_params = list(fill = "white")),
                       colhead = list(fg_params = list(fontsize = 5, fontface = "bold", fontfamily = "sans"), border = TRUE),
@@ -569,12 +574,22 @@ ttable_grob <- gtable_add_grob(ttable_grob,
             x1 = unit(1,"npc"),
             y1 = unit(0,"npc"),
             gp = gpar(lwd = 2.0)),
-        t = 5, b = 5, l = 1, r = ncol(ttable_grob))
+        t = 6, b = 6, l = 1, r = ncol(ttable_grob))
 
+# ttable_grob <- gtable_add_grob(ttable_grob,
+#         grobs = segmentsGrob( # line across the bottom
+#             x0 = unit(0.3,"npc"),
+#             y0 = unit(0,"npc"),
+#             x1 = unit(0.3,"npc"),
+#             y1 = unit(1,"npc"),
+#             gp = gpar(lwd = 2.0)),
+#         t = 1, b = 6, l = 1, r = ncol(ttable_grob))
 
-#grid.newpage()
+ttable_grob$widths[2:13] <- unit(c(1.2, 1.1, 1, 1, 1, 1, 1.2, 1, 1.3, 1.4, 1.5, 1.7), "cm")
 
-#grid.draw(ttable_grob)
+grid.newpage()
+
+grid.draw(ttable_grob)
 ```
 
 ```{r}
@@ -587,7 +602,7 @@ layout2 <- grid.layout(nrow = 2, ncol = 2,
                       heights = unit(c(4, 1), "null"))
 
 layout3 <- grid.layout(nrow = 3, ncol = 2,
-                      widths = unit(c(1.05, 2.2), "null"),
+                      widths = unit(c(1.09, 2.2), "null"),
                       heights = unit(c(1.18, 1.9, 0.72), "null"))
 
 layout4 <- grid.layout(nrow = 4, ncol = 3,
@@ -599,15 +614,28 @@ layout5 <- grid.layout(nrow = 4, ncol = 3,
                       heights = unit(c(0.03, 1.09, 1.41, 1), "null"))
 
 layout6 <- grid.layout(nrow = 2, ncol = 1,
-                      widths = unit(c(1.1, 0.9), "null"),
-                      heights = unit(c(4, 1), "null"))
+                      widths = unit(c(1), "null"),
+                      heights = unit(c(4.2, 1), "null"))
 
+
+layout7 <- grid.layout(nrow = 4, ncol = 2,
+                      widths = unit(c(1.02, 1.5), "null"),
+                      heights = unit(c(0.00, 1.15, 1.41, 1), "null"))
 ```
 
 ```{r}
-pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_2.pdf", height = 7.08661417, width = 7.08661417, family = "sans")
+pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_2.pdf", height = 7.4, width = 7.08661417, family = "sans")
 
 grid.newpage()
+
+
+pushViewport(viewport(layout = layout7))
+
+pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2))
+grid.draw(p5_grob)
+upViewport()
+
+
 
 
 pushViewport(viewport(layout = layout3))
@@ -625,17 +653,17 @@ grid.draw(p2_grob)
 #grid.text("b", x = unit(0, "npc") + unit(4, "mm") , y = unit(1, "npc") - unit(3, "mm"), gp = gpar(fontfamily = "sans", fontface = "bold"))
 upViewport()
 
-pushViewport(viewport(layout = layout4))
+#pushViewport(viewport(layout = layout4))
 
-pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2))
-grid.draw(p1_grob)
-upViewport()
+#pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 2))
+#grid.draw(p1_grob)
+#upViewport()
  
-pushViewport(viewport(layout = layout5))
+#pushViewport(viewport(layout = layout5))
 
-pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 3))
-grid.draw(p4_grob)
-upViewport()
+#pushViewport(viewport(layout.pos.row = 2, layout.pos.col = 3))
+#grid.draw(p4_grob)
+#upViewport()
 
 
 pushViewport(viewport(layout = layout6))
@@ -673,6 +701,8 @@ p1 + p2 + p3 + plot_layout(design = layout)
 ```
 
 ```{r}
-
+pdf("/home/bio.aau.dk/wy72yf/Projects/nanomotif-article/main_figures/figure_test.pdf", height = 7.4, width = 7.08661417, family = "sans")
+p1
+dev.off()
 ```
 
