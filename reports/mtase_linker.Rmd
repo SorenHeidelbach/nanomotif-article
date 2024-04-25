@@ -56,7 +56,8 @@ TMAT_bin_species_dic <- c("bin.c1" = "Pseudomonas aeruginosa",
 
 TMAT <- TMAT %>%
   mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
-  filter(!is.na(bin))
+  filter(!is.na(bin)) %>% 
+   mutate(sample = "monocultures") 
 
 TNAT <- TNAT %>%
   mutate(`bin` = recode(`bin`, !!!TMAT_bin_species_dic)) %>%
@@ -144,7 +145,8 @@ sfecal_MAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modificatio
 "NP-PaPr00000216MP.bin.3.1",	
 "NP-PaPr00000216MP.bin.3.9",	
 "NP-PaPr00000216MP.bin.4.1"))) %>% 
-  filter(!is.na(bin))
+  filter(!is.na(bin)) %>% 
+  mutate(sample = "sfecal")
 sfecal_NAT <- read_tsv("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/PaPr00000216MP_nm_0.1.19/mtase_linker/nanomotif_assignment_table.tsv") %>%
   mutate(sample = "sfecal") %>%
   filter(!(bin %in% c(
@@ -417,6 +419,54 @@ all_MAT_nRM_linked <- all_MAT_nRM %>%
 ```
 
 ```{r}
+all_MAT <- rbind(TMAT, sfecal_MAT, fecal_MAT_HQ, AD_MAT_HQ, soil_MAT_HQ)
+all_NAT <- rbind(TNAT, sfecal_NAT, fecal_NAT_HQ, AD_NAT_HQ, soil_NAT_HQ)
+
+proportion_MAT <- all_MAT %>% 
+  group_by(sample) %>%
+  summarise(
+    Count = n(),
+    RM_count = sum(RM_system),
+    RM_count_linked = sum(RM_system == TRUE & linked == TRUE),
+    orphan_count = Count - sum(RM_system),
+    proportion_RM = RM_count  / Count * 100,
+    proportion_orphan = orphan_count  / Count * 100,
+    proportion_RM_linked = RM_count_linked / RM_count * 100
+  ) %>% 
+  mutate(sample = factor(sample, levels = c("monocultures", "sfecal", "fecal2", "AD", "soil")))# %>% 
+ # pivot_longer(cols = c("RM_count", "orphan_count"), values_to = "count_value", names_to = "Type")
+
+# Plotting
+ggplot(proportion_MAT, aes(x = sample, y = proportion_RM_linked, fill = sample)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(title = "Proportion of RM MTases linked to motif", x = NULL, y = "(%)") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Pastel1") # Adding a color palette
+
+# Preparing the data
+proportion_data <- all_NAT %>%
+  group_by(sample) %>%
+  summarise(
+    Count = n(),
+    Linked_True = sum(linked),
+    Proportion = Linked_True / Count * 100
+  ) %>% 
+  mutate(sample = factor(sample, levels = c("monocultures", "sfecal", "fecal2", "AD", "soil")))
+
+ggplot(proportion_data, aes(x = sample, y = Count, fill = sample)) +
+  geom_bar(stat = "identity", color = "black")
+
+# Plotting
+ggplot(proportion_data, aes(x = sample, y = Proportion, fill = sample)) +
+  geom_bar(stat = "identity", color = "black") +
+  scale_y_continuous(limits = c(0, 100)) +
+  labs(title = "Motifs linked to MTases", x = NULL, y = "(%)") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Pastel1") # Adding a color palette
+```
+
+
+```{r}
 TMAT_md <- TMAT %>% 
   inner_join(TNAT, by = c("bin" = "bin", "detected_motif" = "motif")) %>% 
   mutate(methylation_degree = n_mod_bin/(n_mod_bin + n_nomod_bin))
@@ -439,7 +489,7 @@ ggplot(fecal_MAT_HQ_md, aes(x = as.factor(RM_system), y = methylation_degree, co
   theme_minimal()
 ```
 
-# Supplementary files
+# Supplementary files (Bin consensus and MTase-linker)
 
 ```{r}
 zymo_bin_motifs <- read_tsv("../data/ZymoHMW/nanomotif/bin-motifs.tsv")
@@ -569,7 +619,7 @@ AD_NAT_supp <- AD_bin_motif %>%
   mutate(has_motif = if_else(is.na(has_motif), FALSE, has_motif),
          candidate_genes = if_else(candidate_genes == "nan", NA, candidate_genes))
 
-AD_MAT_supp <- read_tsv("../data/anaerobic_digestor/mtase_linker/mtase_assignment_table.tsv")
+AD_MAT_supp <- read_tsv("../data/anaerobic_digestor/mtase_linker/mtase_assignment_table.tsv") %>% 
   right_join(AD_quality, by = 'bin') %>% 
   select(bin, Completeness, Contamination, MIMAG_standard, gene_id, contig, mod_type, sub_type, RM_system, motif_type, REbase_ID, motif_pred, linked, detected_motif)
 ```
@@ -599,12 +649,21 @@ soil_NAT_supp <- soil_bin_motif %>%
   mutate(has_motif = if_else(is.na(has_motif), FALSE, has_motif),
          candidate_genes = if_else(candidate_genes == "nan", NA, candidate_genes))
 
-soil_MAT_supp <- read_tsv("../data/anaerobic_digestor/mtase_linker/mtase_assignment_table.tsv")
+soil_MAT_supp <- read_tsv("../data/anaerobic_digestor/mtase_linker/mtase_assignment_table.tsv") %>%
   right_join(soil_quality, by = 'bin') %>% 
   select(bin, Completeness, Contamination, MIMAG_standard, gene_id, contig, mod_type, sub_type, RM_system, motif_type, REbase_ID, motif_pred, linked, detected_motif)
 ```
 
 ```{r}
-write_csv(T_MAT_supp, )
+write_csv(T_MAT_supp, "../supplementary_tables/mono_MAT.csv")
+write_csv(T_NAT_supp, "../supplementary_tables/mono_NAT.csv")
+write_csv(sfecal_MAT_supp, "../supplementary_tables/sfecal_MAT.csv")
+write_csv(sfecal_NAT_supp, "../supplementary_tables/sfecal_NAT.csv")
+write_csv(fecal_MAT_supp, "../supplementary_tables/fecal_MAT.csv")
+write_csv(fecal_NAT_supp, "../supplementary_tables/fecal_NAT.csv")
+write_csv(AD_MAT_supp, "../supplementary_tables/AD_MAT.csv")
+write_csv(AD_NAT_supp, "../supplementary_tables/AD_NAT.csv")
+write_csv(soil_MAT_supp, "../supplementary_tables/soil_MAT.csv")
+write_csv(soil_NAT_supp, "../supplementary_tables/soil_NAT.csv")
 ```
 
