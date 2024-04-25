@@ -22,12 +22,13 @@ pacman::p_load(
   "here",
   "ggnewscale",
   "Biostrings",
-  "patchwork"
+  "patchwork",
+  "ggside"
 )
 getwd()
-source("../src/constants.R")
-source("../src/themes.R")
-source("../src/utility.R")
+source("src/constants.R")
+source("src/themes.R")
+source("src/utility.R")
 ```
 
 
@@ -37,9 +38,9 @@ source("../src/utility.R")
 load_bin_info <- function(path){
   bin_info <- fread(path)[
     , quality := fcase(
-      Completeness > 90 & Contamination < 5, "HQ",
-      Completeness > 50 & Contamination < 10, "MQ",
-      Completeness >= 0, "LQ"
+      Completeness > 90 & Contamination < 5, "High Quality",
+      Completeness > 50 & Contamination < 10, "Medium Quality",
+      Completeness >= 0, "Low Quality"
     )
   ]
   return(bin_info)
@@ -76,6 +77,10 @@ simple_fecal <- add_bin_motif_count(
   load_bin_info("data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv"),
   load_bin_motif("data/PaPr00000216MP_nm_0.1.19/nanomotif/bin-motifs.tsv")
 )
+soil <- add_bin_motif_count(
+  load_bin_info("data/soil_mfd02199/mmlong2_lite/results/mmlong2_lite_bins.tsv"),
+  load_bin_motif("data/soil_mfd02199/nanomotif/bin-motifs.tsv")
+)
 colnames(simple_fecal) <-  colnames(ad)
 
 ```
@@ -91,24 +96,30 @@ plot_bin_motif_presence <- function(bin_info) {
       ]
   ggplot(bin_info) + 
     aes(x = cov/2, y = Contig_N50, color = has_motif) +
-    geom_point(alpha = 0.7, size = 1) +
+    geom_point(alpha = 0.7, size = 0.5) +
     scale_x_log10(limits = c(1, NA)) +
     scale_y_log10(limits = c(NA, NA)) +
-    annotate("text", label = "Minimum coverage in Nanomotif", y = 1e4, x = 5.5, hjust = 0, size = 3, color = "gray70") +
+    annotate("text", label = "Minimum coverage in Nanomotif", y = 1.5e4, x = 5.5, hjust = 0, size = 3, color = "gray70") +
     geom_text(
       data = bin_info_summary[cov_gt_10 == FALSE],
-      inherit.aes = FALSE,
+      inherit.aes = FALSE, color = "grey60",
       aes(label = paste0(round(frac_with_motif*100,   digits = 0), "%")), x = log10(4), y = 6.8, hjust = 1, size = 3
     ) + 
     geom_text(
       data = bin_info_summary[cov_gt_10 == TRUE],
-      inherit.aes = FALSE,
+      inherit.aes = FALSE, color = "grey60",
       aes(label = paste0(round(frac_with_motif*100,   digits = 0), "%")), x = log10(6), y = 6.8, hjust = 0, size = 3
+    ) + 
+    annotate(
+      geom = "text", color = "grey60",
+      label = "has motif", x = 5, y = 10^6.6, hjust = 0.41, size = 3
     ) + 
     facet_grid(sample~quality) +
     theme_bw() +
     theme(
-      legend.position = "bottom"
+      legend.position = "bottom",
+      ggside.axis.text = element_blank(),
+      ggside.axis.ticks = element_blank()
     ) +
     scale_color_manual(values = c("TRUE"="black", "FALSE"="firebrick2")) +
     labs(
@@ -116,8 +127,15 @@ plot_bin_motif_presence <- function(bin_info) {
       y = "N50 of bin contigs",
       size = "#motifs",
       color = "Has motif"
-    ) +
-    geom_vline(xintercept = 5, linetype = 2, color = "grey70")
+    ) +  
+    ggside(scales = "free_y", respect_side_labels = "y") +
+    geom_vline(xintercept = 5, linetype = 2, color = "grey60") +
+    geom_xsideboxplot(aes(y = has_motif), na.rm=TRUE, orientation = "y",
+  position = "dodge2", outlier.size = 1) +
+    geom_ysideboxplot(aes(x = has_motif), na.rm=TRUE, orientation = "x",
+  position = "dodge2", outlier.size = 1) +
+    theme(ggside.panel.scale.x = .15,
+        ggside.panel.scale.y = .15)
 }
 ```
 , breaks = c(1, 5, 10, 100, 1000), labels = c("1", "\nMin. cov\nNanomotif", "10", "100", "1000")
@@ -125,10 +143,11 @@ plot_bin_motif_presence <- function(bin_info) {
 collected_bin_info <- rbind(
   fecal[, sample:="Complex Fecal"],
   ad[, sample := "Anaerobic Digester"],
-  simple_fecal[, sample := "Simple Fecal"]
-)
+  simple_fecal[, sample := "Simple Fecal"],
+  soil[, sample := "Soil"]
+)[quality != "Low Quality"]
 collected_bin_info[
-  , sample := factor(sample, levels = c("Simple Fecal", "Complex Fecal", "Anaerobic Digester"))
+  , sample := factor(sample, levels = c("Simple Fecal", "Complex Fecal", "Anaerobic Digester", "Soil"))
 ]
 complex_sample_plot <- plot_bin_motif_presence(collected_bin_info)
 complex_sample_plot
@@ -139,8 +158,9 @@ save(complex_sample_plot, file = "../figures/sup_bin_motif_presence.Rdata")
 ggsave(
   "figures/sup_bin_motif_presence.png",
   complex_sample_plot,
-  height = 10,
-  width = 9
+  height = 12,
+  width = 9,
+  dpi = 600
 )
 ```
 

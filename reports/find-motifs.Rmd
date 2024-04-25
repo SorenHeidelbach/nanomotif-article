@@ -144,7 +144,7 @@ zymo_binmotifs <- fread("../data/ZymoHMW/nanomotif/bin-motifs.tsv")
 # prepare monoculture motifs
 
 gb_motifs_direct <- fread("../data/p_thermoglucosidasius/nanomotif/motifs.tsv")[, directly := TRUE]
-gb_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/Geobacillus_3/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+gb_linked <- fread("../data/p_thermoglucosidasius/mtase_linker/mtase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
 gb_motifs <- merge(
   all_motifs_score[sample == "gb"], gb_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
   , directly := fifelse(is.na(directly), indirect_label, direct_label)
@@ -170,7 +170,7 @@ gb_motifs[, motif_pos := paste0(contig, motif, mod_type)][
 ]
 
 ec_motifs_direct <- fread("../data/e_coli_K12/nanomotif/motifs.tsv")[, directly := TRUE]
-ec_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/E.coli_K12_stat_3/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+ec_linked <- fread("../data/e_coli_K12/mtase_linker/mtase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
 ec_motifs <- merge(
   all_motifs_score[sample == "ec"], ec_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
   , directly := fifelse(is.na(directly), indirect_label, direct_label)
@@ -189,7 +189,7 @@ ec_motifs[, motif_pos := paste0(contig, motif, mod_type)][
 ]
 
 mr_motifs_direct <- fread("../data/m_ruber/nanomotif/motifs.tsv")[, directly := TRUE]
-mr_linked <- fread("/home/bio.aau.dk/wy72yf/Projects/restriction-modification-annotation/analysis/M.ruber_1/mtase_linker/MTase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
+mr_linked <- fread("../data/m_ruber/mtase_linker/mtase_assignment_table.tsv")[detected_motif != ""][, linked_mtase := TRUE][, motif := detected_motif]
 mr_motifs <-  merge(
   all_motifs_score[sample == "mr"], mr_motifs_direct, all.x = TRUE, by=c("contig", "motif", "mod_position", "mod_type"), suffixes = c("", ".drop"))[
   , directly := fifelse(is.na(directly), indirect_label, direct_label)
@@ -575,4 +575,68 @@ ggsave(
   bg = "white")
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+
+plot_data = monoculture
+mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
+  aes(x = factor(motif_markdown, levels = custom_x_order), y = factor(name, levels = custom_yorder)) + 
+  geom_tile(aes(fill = directly), linewidth = 0, alpha = 0) + 
+  scale_fill_manual(values = c("Direct"=direct_color, "Indirect"=indirect_color)) +
+  guides(fill = guide_legend(
+    title = "Method of detection",
+    override.aes = list(alpha = 1))
+  ) +
+  new_scale("fill") +
+  geom_tile(aes(fill = mean), linewidth = 0) +   
+  scale_fill_steps(guide = "none", limits = c(0, 1), low = "white", high = "gray20", na.value = "white", n.breaks = 6) +
+  labs(fill = "Directly") + 
+  new_scale("fill") +
+  geom_tile(data= plot_data, aes(fill = mean), linewidth = 0.5, color = "gray20", alpha = 0) +
+  scale_fill_steps(
+    limits = c(0, 1), low = "white", high = "gray20",
+    labels = scales::percent, n.breaks = 6
+  ) +
+  geom_text(data=plot_data[(n_mod + n_nomod - 1)==0], label = ".", hjust=0.5, vjust=0, size=7) +
+  geom_text(data=plot_data[linked_mtase == TRUE], label = "★", hjust=0.5, vjust=0.5, size=3, color = "orange") +
+  coord_fixed(ratio= 1, clip="off") +
+  theme(
+    axis.text.y = element_markdown(vjust = 0.5, hjust = 0,size=12), # Rotate x-axis labels to 90 degrees
+    axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 12),
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    panel.background = element_blank(),   # Remove panel background,
+  ) +
+  labs(
+    x = "Motif",
+    y = "",
+    fill = "Methylation degree"
+  ) +
+  geom_text(aes(color = "No motif observations"), alpha = 0, label ="") +
+  geom_text(aes(color = "Assigned MTase"), alpha=0, label = "") +
+  scale_color_manual(name = "Indicator", values = c("No motif observations" = "black", "Assigned MTase" = "orange")) +
+  guides(color = guide_legend(override.aes = list(alpha = 1, label = c("★", "●"), size = c(3, 2),  fill = c("orange", "black")))) # Adjust this line as needed
+
+```
 
