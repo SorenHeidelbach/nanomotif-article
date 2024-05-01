@@ -36,9 +36,7 @@ binary_comparison_include <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/fec
 binary_comparison_bin <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/fecal_comparison_matrix.tsv")
 bin_inclusion <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/include_contigs.tsv")
 quality <- fread("../data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv") %>% 
-  rename(
-    Total_Contigs = contigs
-  )
+  rename(Total_Contigs = contigs)
 assembly_info <- fread("../data/PaPr00000216MP_nm_0.1.19/flye/assembly_info.txt") %>% 
   rename(
     contig = `#seq_name`,
@@ -56,9 +54,6 @@ gnm_agg_score <- fread("../data/PaPr00000216MP_nm_0.1.19/genomad/NP-PaPr00000216
 # assembly = read.fasta("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
 gc_df <- calculateGCContent("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
 
-
-# assembly = read.fasta("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
-gc_df <- calculateGCContent("../data/PaPr00000216MP_nm_0.1.19/flye/assembly.fasta")
 ```
 
 
@@ -73,7 +68,6 @@ mm <- gc_df %>%
 
 gnm_virus_m <- gnm_virus %>% 
   mutate(
-    mge = "Virus"
     mge = "Virus"
   ) %>% 
   rename(score = virus_score) %>% 
@@ -94,7 +88,7 @@ gnm <- bind_rows(gnm_plasmid_m, gnm_virus_m) %>%
 sample_name = "NP-PaPr00000216MP."
 
 bin_inclusion <- bin_inclusion %>% 
-  rename(
+  dplyr::rename(
     bin_contig = bin_compare
   ) %>% 
   mutate(
@@ -115,12 +109,10 @@ binary_comparison <- bind_rows(binary_comparison_bin_f, binary_comparison_inc_f)
   left_join(gnm) %>% 
   mutate(
     contig_bin = ifelse(!is.na(mge), mge, contig_bin),
-    contig_bin = ifelse(!is.na(mge), mge, contig_bin),
     length_str = paste0(round(length/1000, 0),"kb"),
     y_string = paste(contig_bin,contig,length_str),
     y_html = case_when(
       is.na(mge) ~ paste0('<span style="color: #808080;">',y_string, '</span>'),
-      mge == "Plasmid" ~ paste0('<strong style="color: #69B3A2; font-style=bold;">', y_string, '</strong>'),
       mge == "Plasmid" ~ paste0('<strong style="color: #69B3A2; font-style=bold;">', y_string, '</strong>'),
       .default = paste0('<strong style="color: #f09205;">', y_string, '</strong>')
     )
@@ -187,12 +179,7 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
   plot <- plot +
     scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
     coord_equal() +
-    coord_equal() +
-    
     geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 5) +
-    geom_text(data = filter(plot_data, is.na(mean)), label = ".", hjust = 0.5, vjust = 0, size = 5) +
-    
-
     geom_text(aes(color = "No motif observations"), label = "", alpha = 0) +
     theme(
       axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
@@ -202,16 +189,8 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
       legend.title = element_text(size = 5),
       legend.text = element_text(size = 5),
       legend.key.size = unit(0.3, 'cm'),
-      axis.text.y = element_markdown(vjust = 0.5, hjust = 0, size = 5), # Rotate x-axis labels to 90 degrees
-      axis.text.x = element_markdown(angle = 90, hjust = 1, vjust = 0.5, size = 5),
-      plot.subtitle = element_text(size = 6),
-      plot.title = element_text(size = 7),
-      legend.title = element_text(size = 5),
-      legend.text = element_text(size = 5),
-      legend.key.size = unit(0.3, 'cm'),
       panel.grid.minor = element_blank(),  # Remove minor gridlines
       panel.background = element_blank(),   # Remove panel background,
-      legend.position = "bottom"
       legend.position = "bottom"
     ) +
     labs(
@@ -454,10 +433,10 @@ ggsave(
 
 
 ```{r}
-motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs.tsv")
-motifs_scored <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs-scored.tsv")
-bin_info <- fread("../data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv")
-bin <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/data/PaPr00000216MP_nm_0.1.19/bins.tsv", header = FALSE)
+motifs <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/analysis/nanomotif-article/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs.tsv")
+motifs_scored <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/analysis/nanomotif-article/data/PaPr00000216MP_nm_0.1.19/nanomotif/motifs-scored.tsv")
+bin_info <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/analysis/nanomotif-article/data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv")
+bin <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/analysis/nanomotif-article/data/PaPr00000216MP_nm_0.1.19/bins.tsv", header = FALSE)
 colnames(bin) <-  c("contig", "bin")
 bin <- bin %>% 
   mutate(bin = str_remove(bin, sample_name))
@@ -692,7 +671,6 @@ label_df <- tibble(
   `1_cov.bam` = c(30, 88, 30),
   gc = c(0.57, 0.57, 0.44),
   label = c("bin.1.1", "plasmid contigs", "virus"),
-  label = c("bin.1.1", "plasmid contigs", "virus"),
   mge = c("bin.1.1", "Plasmid", "Virus")
 )
 
@@ -700,7 +678,7 @@ label_df <- tibble(
 
 mm_all <- mm %>% 
   right_join(binary_comparison) %>% 
-  distinct(contig, .keep_all = TRUE) %>% 
+  dplyr::distinct(contig, .keep_all = TRUE) %>% 
   filter(length >= 10000, bin != "unbinned")
 
 bin_label <- mm_all %>% 
@@ -711,23 +689,13 @@ bin_label <- mm_all %>%
     gc = mean(gc)
   )
 
-  distinct(contig, .keep_all = TRUE) %>% 
-  filter(length >= 10000, bin != "unbinned")
-
-bin_label <- mm_all %>% 
-  filter(!str_detect(bin_contig, "unbinned")) %>% 
-  group_by(bin) %>% 
-  summarise(
-    `1_cov.bam` = mean(`1_cov.bam`),
-    gc = mean(gc)
-  )
 
 
 mm_bin <- mm_all %>% filter(bin == "bin.1.1", length > 12400) %>% mutate(mge = ifelse(is.na(mge), "bin.1.1",mge))
 mm_bin_mge <- mm_all %>% filter(bin == "bin.1.1", length > 12400, !is.na(mge))
 
-labels <- c("250k", "1000k")
-breaks <- c(250, 1000) * 1000
+labels <- c("10k", "250k", "500k", "1000k", "5000k")
+breaks <- c(10, 250, 500, 1000, 5000) * 1000
 
 tab20_colors <- c("#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", 
                   "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", 
@@ -746,7 +714,7 @@ ggplot(aes(y = `1_cov.bam`, x = gc * 100)) +
     title = "Simple Fecal"
   ) +
   scale_y_log10() +
-  scale_size_continuous(name = "Contig length", breaks = breaks, labels = labels, range = c(0.1, 5)) + #, breaks = breaks, labels = labels
+  scale_size_continuous(name = "Contig length", limits = c(10000, 7.5*10^6), breaks = breaks, labels = labels, range = c(0.1, 5)) + #, breaks = breaks, labels = labels
   # scale_color_manual(name = "", values = c("#404080",  "#69B3A2",  "#f09205")) +
   scale_color_manual(name = "", values = tab20_colors) +
   scale_fill_manual(name = "", values = "white") +

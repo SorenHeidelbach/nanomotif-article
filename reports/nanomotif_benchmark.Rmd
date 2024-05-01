@@ -306,7 +306,7 @@ parse_benchmark_paths_to_datatable_no_chunk <- function(root_path, extension) {
         dt, 
         data.table(
           sample = matches[[1]][2], contig = matches[[1]][3], 
-          nmotif = as.integer(matches[[1]][4]), motif = matches[[1]][5], 
+          nmotif = matches[[1]][4], motif = matches[[1]][5], 
           mod_type = matches[[1]][6], pos = as.integer(matches[[1]][7]), 
           coverage = as.integer(matches[[1]][8]),
           path = file
@@ -469,7 +469,7 @@ hm_nm_mm <- ggplot(nm_mm_result) +
   labs(
     x = "Number of motif occourances",
     y = "Read coverage"
-  )
+  )+ theme(legend.position = "bottom")
 hm_nm_mm
 ```
 # Comparison of benchmark
@@ -492,7 +492,7 @@ combined_benchmark[
 hm_combined <- ggplot(combined_benchmark) + 
   aes(x =n_motif_factor, y = coverage_factor) + 
   geom_tile(aes(fill = recall), color = "black") + 
-  scale_fill_steps(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50", n.breaks = 6, labels = scales::percent) +
+  scale_fill_continuous(limits = c(0, 1), low = "white",high = PLOT_COLORS[["dark_blue"]], na.value = "gray50",  labels = scales::percent) +
   facet_grid(tool ~motif_markdown, scale = "free_x")+
   geom_text(aes(label=paste0(round(recall*100,   digits = 0), "%")), size=1) +
   theme_minimal() +
@@ -502,7 +502,7 @@ hm_combined <- ggplot(combined_benchmark) +
   ) +
   #coord_fixed(ratio= 1, clip="off") +
   labs(
-    x = "Number of motif occourances",
+    x = "Number of motif occurrences",
     y = "Read coverage",
     fill = "Motif\nRecall"
   )
@@ -526,8 +526,8 @@ nm_bin_benchmark[
 ][
   , coverage_factor := factor(coverage, levels = unique(sort(coverage)))
 ][
-  , n_motif_factor := factor(nmotif, levels = unique(sort(nmotif, decreasing = TRUE)))
-][
+    , n_motif_factor := factor(nmotif, levels = c("All", full_count_bipartite_label, full_count_palindrome_label, full_count_complex_label, unique(sort(as.integer(nmotif), decreasing = TRUE))))
+  ][
   , motif := fifelse(
     motif == "GAG.GAAGCT",
     "G[AG].GAAG[CT]",
@@ -553,7 +553,12 @@ nm_bin_benchmark[
     motif == "GGCANNNNNNTGG" ~ paste0("*M. ruber*<br>", motif_markdown, "<br> Bipartite")
     
   )
-]
+][
+    , n_motif_factor := fcase(
+      nmotif == "full", factor("All", levels = levels(n_motif_factor)),
+      nmotif != "full" , n_motif_factor
+    )
+  ]
 bin_consensus_benchmark <- ggplot(nm_bin_benchmark) + 
   aes(x =n_motif_factor, y = coverage_factor) + 
   geom_tile(aes(fill = identified), color = "black", linewidth =0.1) + 
@@ -564,16 +569,21 @@ bin_consensus_benchmark <- ggplot(nm_bin_benchmark) +
   ) +
   coord_fixed(ratio= 1, clip="off") +
   labs(
-    x = "Number of motif occourances",
+    x = "Number of motif occurrences",
     y = "Read coverage",
-    fill = "Identified in\nbin-consensus"
+    fill = "Indirect detection"
   ) +
   scale_fill_manual(values = c("TRUE" = "#3A481E", "FALSE"="gray80"))
 bin_consensus_benchmark
 ggsave("../figures/benchmark_heatmap_bin_consensus.png", bin_consensus_benchmark, bg = "white", width = 10, height = 3.5)
 save(bin_consensus_benchmark, file = "../figures/benchmark_heatmap_bin_consensus.Rdata")
+
 ```
 
+```{r}
+load("/home/bio.aau.dk/lx38ll/dark-science/nanomotif-article/figures/benchmark_heatmap_bin_consensus.Rdata")
+bin_consensus_benchmark
+```
 
 
 

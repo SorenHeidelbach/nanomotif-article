@@ -303,8 +303,6 @@ mono_and_zymo_heatmap = ggplot(plot_data[mean > 0.2]) +
 mono_and_zymo_heatmap
 ```
 
-
-
 ```{r}
 height_hm <- 8
 width_hm <- 12
