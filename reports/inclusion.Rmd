@@ -36,9 +36,9 @@ binary_comparison_include <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/fec
 binary_comparison_bin <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/fecal_comparison_matrix.tsv")
 bin_inclusion <- fread("../data/PaPr00000216MP_nm_0.1.19/binnary/include_contigs.tsv")
 quality <- fread("../data/PaPr00000216MP_nm_0.1.19/NP-PaPr00000216MP_bins.tsv") %>% 
-  rename(Total_Contigs = contigs)
+  dplyr::rename(Total_Contigs = contigs)
 assembly_info <- fread("../data/PaPr00000216MP_nm_0.1.19/flye/assembly_info.txt") %>% 
-  rename(
+  dplyr::rename(
     contig = `#seq_name`,
     circular = circ.
   ) %>% 
@@ -81,7 +81,7 @@ gnm_plasmid_m <- gnm_plasmid %>%
   select(seq_name, score, topology, conjugation_genes, amr_genes, mge)
   
   
-gnm <- bind_rows(gnm_plasmid_m, gnm_virus_m) %>% 
+gnm <- bind_rows(gnm_plasmid_m, gnm_virus_m) %>%
   rename(contig = seq_name)
 
 
@@ -439,7 +439,7 @@ bin_info <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/analysis/n
 bin <- fread("/home/bio.aau.dk/lh14io/Projects/nanomotif/binnary/analysis/nanomotif-article/data/PaPr00000216MP_nm_0.1.19/bins.tsv", header = FALSE)
 colnames(bin) <-  c("contig", "bin")
 bin <- bin %>% 
-  mutate(bin = str_remove(bin, sample_name))
+  mutate(bin = stringr::str_remove(bin, sample_name))
 
 quality <- quality %>% 
   mutate(bin = str_remove(bin, sample_name)) %>% 
@@ -570,7 +570,7 @@ make_plot <- function(facet, ratio) {
   plot <- plot +
     scale_fill_gradient2(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"], na.value = "white") +
     
-    geom_text(data = filter(data, is.na(mean)), label = "·", hjust = 0.5, vjust = 0.4, size = 3) +
+    geom_text(data = filter(data, is.na(mean)), label = "·", hjust = 0, vjust = 0.4, size = 3) +
     
   
     geom_text(aes(color = "No motif observations"), label = "", alpha = 0) +

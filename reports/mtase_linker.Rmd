@@ -332,6 +332,73 @@ soil_NAT_HQ <- soil_NAT %>%
   mutate(sample = "soil")
 ```
 
+### Counting number of MTases
+
+```{r}
+### Fecal2 ###
+
+# Group by 'bin' and summarize
+fecal_MTase_count_df <- fecal_MAT_HQ %>%
+  group_by(`bin`) %>%
+  summarize(
+    MTase_count = n(),
+    assigned_count_MTase = sum(!is.na(`detected_motif`))
+  )
+
+# Group by 'bin name' and summarize
+fecal_nanomotif_count_df <- fecal_NAT_HQ %>%
+  group_by(`bin`) %>%
+  summarize(
+    motif_count = n(),
+    assigned_count_motif = sum(linked)
+  ) 
+
+# Merge all counts into one dataframe
+fecal_count_df <- merge(fecal_MTase_count_df, fecal_nanomotif_count_df, by = 'bin', all = TRUE ) %>%
+  merge(fecal_HQ_bins, by = 'bin', all = TRUE ) %>%
+  arrange(desc(MTase_count)) %>%
+  mutate(bin = factor(bin, levels = unique(bin)))# %>%
+  #filter(str_detect(bin, "c"))
+
+fecal_count_df_long <- pivot_longer(fecal_count_df, cols = c(MTase_count,assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"assigned_count_MTase") %>%
+  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif")))
+
+
+### AD ###
+
+# Group by 'bin' and summarize
+AD_MTase_count_df <- AD_MAT_HQ %>%
+  group_by(`bin`) %>%
+  summarize(
+    MTase_count = n(),
+    assigned_count_MTase = sum(!is.na(`detected_motif`))
+  )
+
+# Group by 'bin name' and summarize
+AD_nanomotif_count_df <- AD_NAT_HQ %>%
+  group_by(`bin`) %>%
+  summarize(
+    motif_count = n(),
+    assigned_count_motif = sum(linked)
+  )
+
+# Merge all counts into one dataframe
+AD_count_df <- merge(AD_MTase_count_df, AD_nanomotif_count_df, by = 'bin', all = TRUE ) %>%
+  merge(AD_HQ_bins, by = 'bin', all = TRUE ) %>%
+  arrange(desc(MTase_count)) %>%
+  mutate(bin = factor(bin, levels = unique(bin)))# %>%
+  #filter(str_detect(bin, "c"))
+
+AD_count_df_long <- pivot_longer(AD_count_df, cols = c(MTase_count,assigned_count_MTase, motif_count, assigned_count_motif), names_to = "count_type", values_to = "counts") %>%
+  filter(count_type != 	"assigned_count_MTase") %>%
+  mutate(count_type = factor(count_type, levels = c("MTase_count", "motif_count", "assigned_count_motif")))
+
+
+
+```
+
+
 
 ### Counting number of MTases in RM-system
 ```{r}
@@ -400,6 +467,11 @@ soil_MTase_RM_pr_bin <- soil_MAT_HQ %>%
 
 soil_MTase_RM_pr_bin$MTase_count[is.na(soil_MTase_RM_pr_bin$MTase_count)] <- 0
 soil_MAT_median_MTase <- median(soil_MTase_RM_pr_bin$MTase_count)
+
+
+results <- soil_MAT_HQ %>% 
+  filter(RM_system == TRUE, linked == TRUE) %>% 
+  summarize(count = n())
 ```
 
 ```{r}
@@ -560,8 +632,15 @@ sfecal_NAT_supp <- sfecal_bin_motif %>%
 sfecal_MAT_supp <- read_tsv("../data/PaPr00000216MP/mtase_linker/mtase_assignment_table.tsv") %>%
   right_join(sfecal_quality, by = 'bin') %>% 
   select(bin, Completeness, Contamination, MIMAG_standard, gene_id, contig, mod_type, sub_type, RM_system, motif_type, REbase_ID, motif_pred, linked, detected_motif)
-  
 
+
+result <- sfecal_MAT_supp %>%
+  filter(RM_system == TRUE, MIMAG_standard == "HQ", linked == TRUE)
+
+sfecal_MAT_supp %>% filter(sfecal_MAT_supp$MIMAG_standard == "HQ")
+
+sfecal_MAT_supp$MIMAG_standard == "HQ" & 
+sum(sfecal_MAT_supp$RM_system == TRUE, rm.na = TRUE)
 ```
 
 ```{r}
