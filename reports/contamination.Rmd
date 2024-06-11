@@ -218,7 +218,7 @@ plot_methylation_profile <- function(df, bin2see, motifs = NULL, binary = TRUE, 
       color = ""
     ) +
     guides(
-      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"·"), size = c(2,10)),  direction = "vertical", order = 1)
+      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"·"), size = c(2,10)),  direction = "vertical", order = 5)
     )
   
   contamination_plot
@@ -339,11 +339,11 @@ make_plot <- function(bin2see) {
     scale_fill_continuous(limits = c(0, 1), low = "white", high = PLOT_COLORS["dark_blue"],  na.value = "white",labels = scales::percent, guide = guide_legend(override.aes = list(alpha = 1))) +
     coord_equal() +
     
-    geom_text(aes(color = "Contamination"), label = "", alpha = 1) +
+    geom_text(aes(color = "Putative contamination"), label = "", alpha = 1) +
     geom_text(aes(color = "No motif observations"), label = "", alpha = 1) +
     
     
-    scale_color_manual(values = c("#b00d02", "black")) +
+    scale_color_manual(values = c("#b00d02", "black"), breaks = c("Putative contamination", "No motif observations")) +
     geom_text(data = filter(plot_data, is.na(mean)), label = "·", hjust = 0.5, vjust = 0.5, size = 3) +
     theme(
       legend.position = "none",
@@ -360,7 +360,11 @@ make_plot <- function(bin2see) {
       color = ""
     ) +
     guides(
+<<<<<<< HEAD
       color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis" ,"·")))
+=======
+      color = guide_legend(override.aes = list(alpha = 1, fill = c("#b00d02", "black"),  label = c("axis", "·"), size = c(2)),  direction = "vertical", order = 5)
+>>>>>>> a28952b (main_figures)
     ) +
     facet_grid(. ~ bin)
   
@@ -388,7 +392,7 @@ contamination_plt <- plots_contamination_data %>%
 
 contamination_plt
 
-# save(contamination_plt, plots_contamination_data, file = "../RData/Contamination_heatmap.RData")
+save(contamination_plt, plots_contamination_data, file = "../RData/Contamination_heatmap.RData")
   
 # height_hm <- 8
 # width_hm <- 6
