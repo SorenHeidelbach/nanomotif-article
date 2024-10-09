@@ -23,6 +23,7 @@ pacman::p_load(
   "here",
   "ggnewscale"
 )
+setwd(here::here())
 source("../src/constants.R")
 source("../src/themes.R")
 source("../src/utility.R")

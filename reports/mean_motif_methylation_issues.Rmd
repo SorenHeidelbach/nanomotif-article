@@ -1,5 +1,3 @@
-
-
 ```{r}
 pacman::p_load(
   "data.table",
@@ -8,6 +6,10 @@ pacman::p_load(
   "ggside",
   "patchwork"
 )
+```
+
+
+```{r}
 pileup <- fread("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/data/local/AD/modkit.pileup.mmlong2.bed")
 keep_cols <- c("V1", "V2","V4", "V6", "V11", "V10")
 pileup <- pileup[, ..keep_cols]
@@ -27,34 +29,34 @@ sequences <- readDNAStringSet("/home/bio.aau.dk/lx38ll/dark-science/motif-identi
 ```
 ```{r}
 pattern <- "GAGGAG"
-mod_pos = 4
-motif_mod_type = "a"
-motif_contig = "contig_26"
+mod_pos <- 4
+motif_mod_type <- "a"
+motif_contig <- "contig_26"
 matches <- matchPattern(pattern, sequences[[motif_contig]])
-matchPositions <- start(matches)
-matchPositionsMod <- matchPositions - 1 + mod_pos
-motif_pileup_1 <- pileup[position %in% matchPositionsMod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "CAGGAG\nMiddle mean"]
+match_positions <- start(matches)
+match_positions_mod <- match_positions - 1 + mod_pos
+motif_pileup_1 <- pileup[position %in% match_positions_mod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "CAGGAG\nMiddle mean"]
 ```
 
 ```{r}
 pattern <- "CTGCAG"
-mod_pos = 4
-motif_mod_type = "a"
-motif_contig = "contig_26"
+mod_pos <- 4
+motif_mod_type <- "a"
+motif_contig <- "contig_26"
 matches <- matchPattern(pattern, sequences[[motif_contig]])
-matchPositions <- start(matches)
-matchPositionsMod <- matchPositions - 1 + mod_pos
-motif_pileup_2 <- pileup[position %in% matchPositionsMod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "CTGCAG\nHigh mean"]
+match_positions <- start(matches)
+match_positions_mod <- match_positions - 1 + mod_pos
+motif_pileup_2 <- pileup[position %in% match_positions_mod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "CTGCAG\nHigh mean"]
 ```
 ```{r}
 pattern <- "GATC"
-mod_pos = 1
-motif_mod_type = "a"
-motif_contig = "contig_26"
+mod_pos <- 1
+motif_mod_type <- "a"
+motif_contig <- "contig_26"
 matches <- matchPattern(pattern, sequences[[motif_contig]])
-matchPositions <- start(matches)
-matchPositionsMod <- matchPositions - 1 + mod_pos
-motif_pileup_3 <- pileup[position %in% matchPositionsMod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "GATC\nLow mean"]
+match_positions <- start(matches)
+match_positions_mod <- match_positions - 1 + mod_pos
+motif_pileup_3 <- pileup[position %in% match_positions_mod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "GATC\nLow mean"]
 ```
 
 ```{r}

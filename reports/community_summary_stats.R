@@ -1,15 +1,3 @@
----
-title: "sample_stats"
-output:
-  html_document:
-    df_print: paged
-  html_notebook: default
-  pdf_document: default
----
-
-
-
-```{r}
 pacman::p_load(
   "data.table",
   "ggplot2",
@@ -30,8 +18,6 @@ source("src/themes.R")
 source("src/utility.R")
 ```
 
-
-```{r}
 load_sequencing_stats <- function(path) {
   report <- fromJSON(file=path)
   return(report)
@@ -40,6 +26,7 @@ load_read_stats <- function(path, sample) {
   read_stats <- fread(path, header =  FALSE)[, Sample := sample] %>% dcast(Sample~V1, value.var = "V2")
   return(read_stats)
 }
+
 read_stats <- rbind(
   load_read_stats("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/mfd02199/qc_reads/nanostat", "soil"),
   load_read_stats("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/qc_reads/nanostat", "fecal_complex"),
@@ -55,6 +42,7 @@ load_assembly_stats <- function(path, sample){
     ][, Sample := sample]
   return(assembly_stats)
 }
+
 assembly_stats <- rbind(
   load_assembly_stats("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/mfd02199/mmlong2_lite/tmp/flye/40-polishing/filtered_stats.txt", "soil"),
   load_assembly_stats("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/fecal2/mmlong2_lite/tmp/flye/40-polishing/filtered_stats.txt", "fecal_complex"),
@@ -62,11 +50,7 @@ assembly_stats <- rbind(
   load_assembly_stats("/projects/dark_science/nanomotif/nanomotif_article/data/PaPr00000216MP_nm_0.1.19/flye/assembly_info.txt", "fecal_simple")
 )
 
-```
 
-
-```{r}
 stats <- merge(assembly_stats, read_stats, by = "Sample", all = TRUE)[, gb_sequenced := as.numeric(number_of_bases) / 1e9]
 select_stats <- stats[, c("Sample", "gb_sequenced", "n50_contigs", "n_contigs")]
-```
 
