@@ -145,8 +145,8 @@ add_qc_to_bin_contamination <- function(contamination, qc, contig_length, sample
     right_join(contamination) %>% 
     mutate(
       mag_quality = case_when(
-        Completeness >= 90 & Contamination <= 5 ~ "HQ",
-        Completeness >= 50 & Contamination <= 10 ~"MQ"
+        completeness_checkm2 >= 90 & contamination_checkm2 <= 5 ~ "HQ",
+        completeness_checkm2 >= 50 & contamination_checkm2 <= 10 ~"MQ"
       ),
       mag_quality = factor(mag_quality, levels = c("HQ", "MQ"))
     ) %>% 
@@ -216,4 +216,124 @@ calculateGCContent <- function(filePath) {
   )
   
   return(gcDataFrame) # Return the data frame
+}
+
+# Check if the sequence has n stretches of m consecutive characters
+has_n_character_stretches_of_length_m <- function(sequence, n, m, character) {
+  regex_str <- paste0("(", character, "){", m, ",}")
+  matches <- str_extract_all(sequence, regex_str)[[1]]
+  return(length(matches) >= n)
+}
+
+# Function to determine motif type
+motif_type <- function(motif_str) {
+  # Check for ambiguous motifs
+  if (has_n_character_stretches_of_length_m(motif_str, 2, 2, "N")) {
+    return("ambiguous")
+  }
+  # Check for bipartite motifs
+  else if (str_detect(motif_str, "(N){3,}")) {
+    return("bipartite")
+  }
+  # Check if motif is a palindrome
+  else if (reverse_complement(motif_str) == motif_str) {
+    return("palindrome")
+  }
+  # Default to non-palindrome
+  else {
+    return("non-palindrome")
+  }
+}
+
+reverse_complement <- function(seq) {
+  # Define the complement map including IUPAC nucleotide codes
+  complement <- c(
+    "A" = "T", "T" = "A", "C" = "G", "G" = "C",
+    "R" = "Y", "Y" = "R", "S" = "S", "W" = "W",
+    "K" = "M", "M" = "K", "B" = "V", "V" = "B",
+    "D" = "H", "H" = "D", "N" = "N"
+  )
+  
+  # Split the sequence into individual characters
+  seq_split <- str_split(seq, "")[[1]]
+  
+  # Replace each base with its complement and reverse the sequence
+  rev_comp <- rev(sapply(seq_split, function(base) {
+    if (!is.null(complement[[base]])) {
+      return(complement[[base]])
+    } else {
+      stop(paste("Invalid nucleotide:", base))
+    }
+  }))
+  
+  # Combine the reversed complement sequence back into a string
+  return(paste(rev_comp, collapse = ""))
+}
+
+# Generate all possible k-mers of a given alphabet and size
+generate_kmers <- function(k, alphabet = c("A", "T", "C", "G")) {
+  kmers <- unlist(lapply(1:k, function(i) {
+    apply(expand.grid(rep(list(alphabet), i)), 1, paste, collapse = "")
+  }))
+  return(kmers)
+}
+
+# Find the starting indices of a subsequence in a sequence
+subseq_indices <- function(subseq, seq) {
+  matches <- str_locate_all(seq, subseq)[[1]]
+  return(matches[, 1])  # Return the start positions
+}
+
+
+library(Biostrings)
+
+# Function to load FASTA and return sequence lengths
+get_fasta_sequence_lengths <- function(fasta_file) {
+  # Read the FASTA file
+  fasta_data <- readDNAStringSet(fasta_file)
+  
+  # Extract sequence IDs
+  sequence_ids <- names(fasta_data)
+  
+  # Calculate sequence lengths
+  sequence_lengths <- width(fasta_data)
+  
+  # Create a data frame
+  result <- data.frame(
+    contig = sequence_ids,
+    length = sequence_lengths,
+    stringsAsFactors = FALSE
+  )
+  
+  return(result)
+}
+
+
+
+reverse_complement_func <- function(sequences) {
+  # Define the complement for each nucleotide including IUPAC codes
+  complement <- c(
+    A = "T", T = "A", G = "C", C = "G",
+    R = "Y", Y = "R", S = "S", W = "W",
+    K = "M", M = "K", B = "V", D = "H",
+    H = "D", V = "B", N = "N",
+    a = "t", t = "a", g = "c", c = "g",
+    r = "y", y = "r", s = "s", w = "w",
+    k = "m", m = "k", b = "v", d = "h",
+    h = "d", v = "b", n = "n"
+  )
+  
+  # Apply reverse complement to each sequence in the vector
+  reverse_complement <- sapply(sequences, function(sequence) {
+    # Split the sequence into individual characters
+    sequence_chars <- unlist(strsplit(sequence, split = ""))
+    
+    # Replace each nucleotide with its complement
+    complement_chars <- complement[sequence_chars]
+    
+    # Reverse the complemented sequence
+    paste0(rev(complement_chars), collapse = "")
+  })
+  
+  return(reverse_complement)
 }
