@@ -1,0 +1,110 @@
+```{r}
+pacman::p_load(
+  "data.table",
+  "ggplot2",
+  "Biostrings",
+  "ggside",
+  "patchwork"
+)
+```
+
+
+```{r}
+pileup <- fread("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/data/local/AD/modkit.pileup.mmlong2.bed")
+keep_cols <- c("V1", "V2","V4", "V6", "V11", "V10")
+pileup <- pileup[, ..keep_cols]
+pileup <- rename(pileup, c("V1"="contig", "V2"="position", "V4"= "mod_type", "V6"= "strand", "V11"= "fraction_mod", "V10"="Nvalid_cov"))
+pileup <- pileup[
+  , fraction_mod := as.numeric(fraction_mod) / 100
+][
+   Nvalid_cov > 10,
+]
+
+
+```
+
+```{r}
+sequences <- readDNAStringSet("/home/bio.aau.dk/lx38ll/dark-science/motif-identification/analysis/AD/mmlong2_lite/results/mmlong2_lite_assembly.fasta")
+
+```
+```{r}
+pattern <- "GAGGAG"
+mod_pos <- 4
+motif_mod_type <- "a"
+motif_contig <- "contig_26"
+matches <- matchPattern(pattern, sequences[[motif_contig]])
+match_positions <- start(matches)
+match_positions_mod <- match_positions - 1 + mod_pos
+motif_pileup_1 <- pileup[position %in% match_positions_mod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "CAGGAG\nMiddle mean"]
+```
+
+```{r}
+pattern <- "CTGCAG"
+mod_pos <- 4
+motif_mod_type <- "a"
+motif_contig <- "contig_26"
+matches <- matchPattern(pattern, sequences[[motif_contig]])
+match_positions <- start(matches)
+match_positions_mod <- match_positions - 1 + mod_pos
+motif_pileup_2 <- pileup[position %in% match_positions_mod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "CTGCAG\nHigh mean"]
+```
+```{r}
+pattern <- "GATC"
+mod_pos <- 1
+motif_mod_type <- "a"
+motif_contig <- "contig_26"
+matches <- matchPattern(pattern, sequences[[motif_contig]])
+match_positions <- start(matches)
+match_positions_mod <- match_positions - 1 + mod_pos
+motif_pileup_3 <- pileup[position %in% match_positions_mod & mod_type == motif_mod_type & strand == "+" & contig == motif_contig][, label := "GATC\nLow mean"]
+```
+
+```{r}
+motif_pileup <- rbind(motif_pileup_1, motif_pileup_2, motif_pileup_3)
+```
+
+```{r}
+def_breaks <- labeling::extended(0, 1, m = 6)
+p <- ggplot(motif_pileup) +
+  aes(position, fraction_mod) +
+  geom_point(size = 1) + 
+  geom_hline(yintercept = 0.7, linetype=2) + 
+  ylim(0, 1) +
+  theme_bw() + 
+  facet_wrap(~label) + 
+  labs(
+    x = "Contig position",
+    y = "Fraction of reads methylated",
+    title = "Contig 26",
+    subtitle = "Different degrees of motif methylation"
+  ) +
+  scale_y_continuous(breaks = c(0.7, def_breaks), labels = c("Threshold", def_breaks))
+p
+```
+
+```{r}
+p_2 <- ggplot(motif_pileup_2) +
+  aes(position, fraction_mod) +
+  geom_point() + 
+  geom_hline(yintercept = 0.7, linetype=2) + 
+  ylim(0, 1) +
+  theme_bw()
+p_2
+```
+
+
+```{r}
+p_3 <- ggplot(motif_pileup_3) +
+  aes(position, fraction_mod) +
+  geom_point() + 
+  geom_hline(yintercept = 0.7, linetype=2) + 
+  ylim(0, 1) +
+  theme_bw()
+p_3
+```
+
+
+```{r}
+p_1 + p_2 + p_3
+```
+
