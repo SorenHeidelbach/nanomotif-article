@@ -1,0 +1,551 @@
+---
+title: "mtase_linker_figures"
+author: "Jeppe Støtt Bøjer"
+date: "2024-02-20"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+
+```
+```{r}
+library(readr)
+library(tidyverse)
+library(ggbeeswarm)
+library(paletteer)
+library(patchwork)
+```
+
+# Monocultures MTase-Linker Analysis
+### Loading MTase-Linker tables
+```{r}
+folders <- c("CVM07_Shewanella_oneidensis", "CVM72_Zymomonas_mobilis", "CVM73_Kangiella_aquimarina", "DSMZ107007-Anabaena_variabilis", "DSMZ11109-Desulfobacca_acetoxidans", "DSMZ13772-Salmonella_bongori", "DSMZ20745-Sphaerobacter_thermophilus", "DSMZ2380-Pelobacter_carbinolicus", "DSMZ6589-Thermanaerovibrio_acidaminovorans", "e_coli_k12", "m_ruber")
+
+paths_MAT <- paste0("/projects/dark_science/nanomotif/nanomotif_rebuttal/data/monocultures/", folders, "/mtase_linker_0.4.16_N_0.3.2/mtase_assignment_table.tsv")
+
+
+
+paths_NAT <- paste0("/projects/dark_science/nanomotif/nanomotif_rebuttal/data/monocultures/", folders, "/mtase_linker_0.4.16_N_0.3.2/nanomotif_assignment_table.tsv")
+
+
+MAT_list <- lapply(paths_MAT, read_tsv)
+NAT_list <- lapply(paths_NAT, read_tsv)
+
+names(MAT_list) <- folders
+names(NAT_list) <- folders
+
+GS_MAT <- bind_rows(MAT_list) %>%
+  mutate(has_mtase = TRUE) %>%
+  mutate(sample = "monocultures")
+GS_NAT <- bind_rows(NAT_list) %>%
+  mutate(has_motif = TRUE) %>%
+  mutate(sample = "monocultures")
+```
+
+
+### Orphan MTases and RM-systems
+```{r}
+length(unique(GS_MAT$DF_system_ID))
+sum(GS_MAT$RM_system == FALSE)
+```
+
+### Motifs linked to MTase
+```{r}
+sum(GS_NAT$linked == TRUE)
+```
+
+## MTase linked and in RM system
+```{r}
+sum((GS_MAT$linked == TRUE) & (GS_MAT$RM_system == TRUE))
+```
+
+
+### Motif not linked with candiate genes
+```{r}
+sum(GS_NAT$linked == FALSE & !is.na(GS_NAT$candidate_genes))
+```
+
+### Counting number of MTases in RM-system
+```{r}
+sum_unique_RM_system_ID <- length(unique(GS_MAT$DF_system_ID))
+```
+
+
+# Real communities
+
+```{r}
+
+process_sample <- function(sample_name) {
+
+  type <- ifelse(sample_name == "ZymoHMW", "mock_communities", "real_communities")
+  MTase_linker <- case_when(sample_name == "ZymoHMW" ~ "mtase_linker_0.4.13_N_0.3.2_zymo_ref",
+                            sample_name == "fecal_simple_recovered" ~ "mtase_linker_0.4.16_N_0.3.2",
+                            TRUE ~ "mtase_linker_0.4.16_N_0.3.2")
+  mmlong <- ifelse(sample_name == "fecal_simple_recovered", "mmlong2_bins.tsv", "mmlong2_lite_bins.tsv")
+
+  mat_path <- file.path("/projects/dark_science/nanomotif/nanomotif_rebuttal/data", type , sample_name, MTase_linker, "mtase_assignment_table.tsv")
+  nat_path <- file.path("/projects/dark_science/nanomotif/nanomotif_rebuttal/data", type, sample_name, MTase_linker, "nanomotif_assignment_table.tsv")
+  assembly_sum_path <- assembly_sum_path <- file.path("/projects/dark_science/nanomotif/nanomotif_rebuttal/data", type, sample_name, "mmlong2_lite/results", mmlong)
+  
+  mat <- read_tsv(mat_path)
+  nat <- read_tsv(nat_path)
+  assembly_sum <- read_tsv(assembly_sum_path)
+  
+
+  hq_bins <- assembly_sum %>%
+    filter(completeness_checkm2 >= 90 & contamination_checkm2 <= 5) %>%
+    select(bin)
+  
+  mat_hq <- mat %>%
+    filter(`bin` %in% hq_bins$bin) %>%
+    mutate(has_mtase = TRUE) %>%
+    merge(hq_bins, by = 'bin', all = TRUE) %>%
+    mutate(sample = sample_name)
+  
+  nat_hq <- nat %>%
+    filter(`bin` %in% hq_bins$bin) %>%
+    mutate(has_motif = TRUE) %>%
+    merge(hq_bins, by = 'bin', all = TRUE) %>%
+    mutate(sample = sample_name)
+  
+  return(list(mat_hq = mat_hq, nat_hq = nat_hq))
+}
+
+
+sample_names <- c("anaerobic_digester", "fecal_inhouse", "fecal_simple_recovered", "ZymoFecal")
+
+
+
+results <- lapply(sample_names, process_sample)
+
+
+mat_hq_total <- bind_rows(lapply(results, function(x) x$mat_hq))
+nat_hq_total <- bind_rows(lapply(results, function(x) x$nat_hq))
+
+```
+
+
+```{r}
+process_sample_soil <- function(sample_name) {
+
+  mat_path <- file.path("/projects/dark_science/nanomotif/nanomotif_rebuttal/data/real_communities", sample_name,"mtase_linker_0.4.13_N_0.3.2/mtase_assignment_table.tsv")
+  nat_path <- file.path("/projects/dark_science/nanomotif/nanomotif_rebuttal/data/real_communities", sample_name,"mtase_linker_0.4.13_N_0.3.2/nanomotif_assignment_table.tsv")
+  assembly_sum_path <- file.path("/projects/dark_science/nanomotif/nanomotif_rebuttal/data/real_communities", sample_name, "mmlong2_lite/results/mmlong2_lite_bins.tsv")
+  
+
+  mat <- read_tsv(mat_path)
+  nat <- read_tsv(nat_path)
+  assembly_sum <- read_tsv(assembly_sum_path)
+  
+ 
+  hq_bins <- assembly_sum %>%
+    filter(Completeness >= 90 & Contamination <= 5) %>%
+    select(bin)
+  
+ 
+  mat_hq <- mat %>%
+    filter(`bin` %in% hq_bins$bin) %>%
+    mutate(has_mtase = TRUE) %>%
+    merge(hq_bins, by = 'bin', all = TRUE) %>%
+    mutate(sample = sample_name)
+  
+
+  nat_hq <- nat %>%
+    filter(`bin` %in% hq_bins$bin) %>%
+    mutate(has_motif = TRUE) %>%
+    merge(hq_bins, by = 'bin', all = TRUE) %>%
+    mutate(sample = sample_name)
+  
+  return(list(mat_hq = mat_hq, nat_hq = nat_hq))
+}
+
+
+sample_names <- c("mfd02199_backup")
+
+results_soil <- lapply(sample_names, process_sample_soil)
+```
+
+
+```{r}
+mat_hq_total <- bind_rows(GS_MAT, mat_hq_total, bind_rows(lapply(results_soil, function(x) x$mat_hq))) %>%
+   mutate(has_mtase = replace_na(has_mtase, FALSE),
+          RM_system = replace_na(RM_system, FALSE)) %>% 
+   mutate(sample = factor(sample, levels = c("monocultures", "fecal_simple_recovered", "ZymoFecal", "fecal_inhouse", "anaerobic_digester", "mfd02199_backup")))
+nat_hq_total <- bind_rows(GS_NAT, nat_hq_total, bind_rows(lapply(results_soil, function(x) x$nat_hq))) %>%
+  mutate(has_motif = replace_na(has_motif, FALSE)) %>% 
+  mutate(sample = factor(sample, levels = c("monocultures", "fecal_simple_recovered",  "ZymoFecal", "fecal_inhouse", "anaerobic_digester", "mfd02199_backup"))) %>% 
+ mutate(candidate_genes = ifelse(candidate_genes == "nan", NA, candidate_genes))
+```
+```{r}
+sum(mat_hq_total$sample != "monocultures")
+
+
+#Number of bins
+mat_hq_total %>%
+  group_by(sample, bin) %>%
+  summarise() %>%
+  summarise(num_groups = n())
+
+# Number of MAGs
+mat_hq_total %>%
+  group_by(bin, sample) %>%
+  summarise(num_entries = n(), .groups = "drop") %>%
+  nrow()
+
+#Number of MTases in RM-system
+mat_hq_total %>%
+  filter((RM_system == TRUE) & (sample != "monocultures")) %>%
+  summarise(num_groups = n())
+
+# Number of linked motifs
+nat_hq_total %>%
+  filter((linked == TRUE) & (sample != "monocultures") & (mod_type == "m")) %>%
+  summarise(num_groups = n())
+
+# Median number of MTases genes
+mat_hq_total %>% 
+  filter(sample != "monocultures") %>%
+  group_by(bin) %>%
+   summarise(
+    Count = sum(has_mtase)) %>%
+    summarise(median(Count))
+
+# Median number of RM systems
+mat_hq_total %>%
+  filter((sample != "monocultures") & (RM_system == TRUE)) %>%           
+  group_by(bin) %>%    
+  summarise(RM_system_count = n_distinct(DF_system_ID))   %>% 
+  summarise(median_num_groups = median(RM_system_count))
+
+
+```
+
+```{r}
+boxplot_MAT_data <- mat_hq_total %>% 
+  group_by(sample, bin) %>%
+   summarise(
+    Count = sum(has_mtase),
+    count_RM = sum(RM_system))
+
+boxplot_MAT_data_labels <- boxplot_MAT_data %>% 
+  group_by(sample) %>% 
+  summarise(position = max(Count),
+            position_RM = max(count_RM),
+            HQ_MAGS = n())
+
+tab20_colors <- c("#1f77b4", "#aec7e8", "#ff7f0e", "#ffbb78", "#2ca02c", 
+                  "#98df8a", "#d62728", "#ff9896", "#9467bd", "#c5b0d5", 
+                  "#8c564b", "#c49c94", "#e377c2", "#f7b6d2", "#008080", "#228B22")
+
+```
+
+```{r}
+boxplot_NAT_data <- nat_hq_total %>% 
+  group_by(sample, bin) %>%
+   summarise(
+    Count = sum(has_motif))
+
+boxplot_NAT_data_labels <- boxplot_NAT_data %>% 
+  group_by(sample) %>% 
+  summarise(position = max(Count),
+            HQ_MAGS = n())
+
+```
+
+
+
+```{r}
+MAT_NAT_count <- full_join(boxplot_MAT_data, boxplot_NAT_data, by = c("sample", "bin")) %>%
+  select(sample, bin, Count.x, Count.y) %>%
+  rename("MTase_count" = Count.x, "motif_count" = Count.y)
+
+ggplot(MAT_NAT_count, aes(x = MTase_count, y = motif_count, color = sample)) +
+  geom_jitter() +
+  geom_abline(intercept = 0, slope = 1) +
+  labs(x = "MTase genes pr. genome", y = "Motifs pr. genome", title = NULL) +
+  theme_classic() +
+  theme(
+    text = element_text(size=10, color = "black"),
+    title = element_text(size = 12),
+    axis.text = element_text(color = "black", size = 12),
+    axis.title = element_text(size = 12),
+    legend.position = "none",
+    plot.caption = element_text(hjust = 0),
+    plot.background = element_rect(fill = "white",colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.background = element_rect(fill = "transparent",colour = NA)
+  )
+```
+
+```{r}
+combined_data <- bind_rows(
+  boxplot_MAT_data %>% 
+    mutate(type = "MTase", y = Count),
+  boxplot_NAT_data %>% 
+    mutate(type = "Motif", y = Count)
+)
+
+
+combined_data <- combined_data %>%
+  mutate(sample_type = paste(sample, type, sep = "_"))
+
+
+combined_data_labels <- bind_rows(
+  boxplot_MAT_data_labels %>% mutate(type = "MTase", position = position + 1),
+  boxplot_NAT_data_labels %>% mutate(type = "Motif", position = position + 1)
+) %>%
+  mutate(sample_type = paste(sample, type, sep = "_"))
+
+
+```
+
+```{r}
+combined_plot_facet_single_row <- ggplot(combined_data, aes(x = type, y = y, fill = type)) +
+  ggbeeswarm::geom_quasirandom(
+    shape = 21,
+    alpha = 1, size = 0.5,
+    aes(color = type)
+  ) +
+  geom_boxplot(aes(alpha = 0.3), outlier.shape = NA, linewidth = 0.5) +
+  scale_fill_manual(values = c("MTase" = "#1f77b4", "Motif" = "#ff7f0e"),
+  labels = c("MTase" = "MTase genes", "Motif" = "Motifs")) +
+  scale_color_manual(values = c("MTase" = "#1f77b4", "Motif" = "#ff7f0e")) +
+  facet_wrap(~ sample, nrow = 1, labeller = labeller(sample = c("monocultures" = "Monocultures", "fecal_simple_recovered" = "Simple\nfecal", "ZymoFecal" = "Zymo\nFecal", "fecal_inhouse" = "Fecal\ninhouse", "anaerobic_digester" = "Anaerobic\ndigester", "mfd02199_backup" = "Soil"))) +  # Single row, clean labels
+  scale_y_continuous(breaks = seq(0, 30, by = 2), limits = c(0, 31)) +
+  
+  labs(x = NULL, y = "Genes/Motifs per genome", fill = "Type", color = "Type") +  # Legends for fill and color
+  geom_text(data = combined_data_labels, 
+            aes(x = 1.5, y = max(position) - c(10, 20, 5, 0.5, 4, 18, 10, 20, 5, 0.5, 4, 18) - 0.1, label = paste("MAGS =", HQ_MAGS)), 
+            vjust = -1, hjust = 0.5, color = "black", size = 2, family = "helvetica") +
+geom_segment(data = combined_data_labels, 
+               aes(x = 0.5, xend = 2.5, y = max(position) - c(10, 20, 5, 0.5, 4, 18, 10, 20, 5, 0.5, 4, 18), yend = max(position) - c(10, 20, 5, 0.5, 4, 18, 10, 20, 5, 0.5, 4, 18)), 
+               inherit.aes = FALSE, color = "black", size = 0.2) +
+geom_segment(data = combined_data_labels, 
+               aes(x = 2.5, xend = 2.5, y = max(position) - c(10, 20, 5, 0.5, 4, 18, 10, 20, 5, 0.5, 4, 18), yend = max(position) - c(10, 20, 5, 0.5, 4, 18, 10, 20, 5, 0.5, 4, 18) - 0.2), 
+               inherit.aes = FALSE, color = "black", size = 0.2) +  # Right tick
+ geom_segment(data = combined_data_labels, 
+               aes(x = 0.5, xend = 0.5, y = max(position) - c(10, 20, 5, 0.5, 4, 18, 10, 20, 5, 0.5, 4, 18), yend = max(position) - c(10, 20, 5, 0.5, 4, 18, 10, 20, 5, 0.5, 4, 18) - 0.2), 
+               inherit.aes = FALSE, color = "black", size = 0.2) + 
+  theme_classic() +
+  theme(
+    text = element_text(size = 12, color = "black"),
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 7),
+    axis.text.y = element_text(size = 5),
+    strip.text = element_text(size = 6, margin = margin(1, 1, 1, 1)),
+    strip.background = element_rect(fill = "grey90", colour = "black", size = 0.5, linetype = "solid"),
+    title = element_text(size = 7),
+    plot.caption = element_text(hjust = 0),
+    plot.background = element_rect(fill = "white", colour = NA),
+    panel.background = element_rect(fill = "white", colour = NA),
+    legend.text = element_text(size = 5),
+    legend.position = c(0.07, 0.9),
+    legend.background = element_rect(fill = "transparent", colour = NA),
+    legend.box.spacing = unit(0.2, "cm"),  
+    legend.margin = margin(t = 0, r = 0, b = 0, l = 0),
+    legend.key.size = unit(0.5, "cm")
+    #panel.grid.major = element_line(color = "grey80", size = 0.5), 
+    #panel.grid.minor = element_line(color = "grey90", size = 0.25), 
+    #panel.border = element_rect(color = "black", fill = NA, size = 0.8)
+  ) + guides(alpha = FALSE, color = FALSE, fill = guide_legend(title = NULL))  
+combined_plot_facet_single_row
+
+```
+
+```{r}
+proportion_data <- nat_hq_total %>%
+  filter(!is.na(linked)) %>% 
+  group_by(sample) %>%
+  summarise(
+    Count = n(),
+    Linked_True = sum(linked),
+    Proportion = Linked_True / Count * 100,
+    candidate_count = sum(!is.na(candidate_genes)),
+    Proportion_cand = candidate_count / Count * 100
+  ) 
+
+barplot_proportion_plt <- ggplot(proportion_data, aes(x = sample)) +
+  geom_bar(aes(y = Proportion_cand, fill = "Candidate MTases found"), 
+           stat = "identity", color = "white", linewidth = 1, position = position_dodge(width = 0.9)) +
+  geom_bar(aes(y = Proportion, fill = "Linked to a single MTase"), 
+           stat = "identity", color = "white", linewidth = 1, position = position_dodge(width = 0.9)) +
+  
+  geom_text(aes(y = Proportion_cand, label = sprintf("%.1f", Proportion_cand)), 
+            vjust = -1, position = position_dodge(width = 0.9), size = 2, family = "helvetica") +
+  geom_text(aes(y = Proportion, label = sprintf("%.1f", Proportion)), 
+            vjust = -1, position = position_dodge(width = 0.9), size = 2, family = "helvetica") +
+
+  scale_fill_manual(name = "Motif assignment", 
+                    values = c("Candidate MTases found" = "#c9e3f6", 
+                               "Linked to a single MTase" = "#d18038")) +
+  
+  scale_y_continuous(limits = c(0, 100)) +
+  scale_x_discrete(labels = c("Mono-\ncultures", "Simple\nfecal", "Zymo\nFecal", 
+                              "Fecal\ninhouse", "Anaerobic\ndigester", "Soil")) +
+  
+  labs(title = NULL, x = NULL, y = "Motifs [%]") +
+  theme_classic() +
+  theme(
+    text = element_text(size = 12, color = "black"),
+    axis.text = element_text(color = "black", size = 5),
+    axis.text.x = element_text(size = 5),
+    axis.title = element_text(size = 7),
+    title = element_text(size = 7),
+    plot.caption = element_text(hjust = 0),
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.background = element_rect(fill = "transparent", colour = NA),
+    #legend.position = c(0.5, 1.05),
+    legend.margin = margin(t = 0, r = 0, b = 0, l = 0),
+    legend.position = "bottom",
+    legend.text = element_text(size = 5),
+    legend.key.size = unit(0.5, "cm")
+  ) + guides(fill = guide_legend(title = NULL, direction = "horizontal", reverse = TRUE))
+
+barplot_proportion_plt
+```
+
+```{r}
+nat_hq_total %>%
+  filter(sample != "monocultures") %>% 
+  summarise(
+    Count = n(),
+    Linked_True = sum(linked),
+    Proportion = Linked_True / Count * 100,
+    candidate_count = sum(!is.na(candidate_genes)),
+    Proportion_cand = candidate_count / Count * 100
+  ) 
+```
+
+```{r}
+All_MAT_RM_prop <- mat_hq_total %>%
+  filter(has_mtase == TRUE) %>%
+  group_by(sub_type_pred) %>%
+  summarize(RM_MTase_propor = (sum(RM_system)/n())*100)
+
+RM_count_plot <- ggplot(All_MAT_RM_prop) +
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.5, color = "white", aes(x = sub_type_pred, y = 100, fill = "Orphan MTases"), linewidth = 1) + 
+  geom_bar(stat = "identity", position = position_dodge(), width = 0.5, color = "white", aes(x = sub_type_pred, y = RM_MTase_propor, fill = "MTases in RM system"), linewidth = 1, family = "helvetica") +
+  geom_text(aes(x = sub_type_pred, y = RM_MTase_propor, label = sprintf("%.0f", RM_MTase_propor)), vjust = -1, position = position_dodge(width = 0.9), size = 2, family = "helvetica") +
+  scale_fill_manual(values = c("Orphan MTases" = "grey", "MTases in RM system" = "#8c564b"), guide = guide_legend(title = NULL, direction = "horizontal")) +
+  scale_x_discrete(labels = c("Type_I" = "Type I", "Type_II" = "Type II", "Type_IIG" = "Type IIG", "Type_III" = "Type III")) +
+  labs(x = NULL, y = "MTases [%]") +
+  theme_classic() +
+  theme(panel.spacing = unit(2, "lines"),
+    text = element_text(size=12, color = "black"),
+    title = element_text(size = 7),
+    axis.text = element_text(color = "black", size = 5),
+    axis.text.x = element_text(size = 5),
+    axis.title = element_text(size = 7),
+    plot.caption = element_text(hjust = 0),
+    plot.background = element_rect(fill = "white",colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.background = element_rect(fill = "transparent",colour = NA),
+    legend.text = element_text(size = 5),
+    #legend.position = c(0.5, 1.05),
+    legend.position = "bottom",
+    legend.box.spacing = unit(0.2, "cm"), 
+    legend.margin = margin(t = 0, r = 0, b = 0, l = 0),
+    legend.key.size = unit(0.5, "cm")
+  )
+
+
+RM_count_plot
+```
+
+```{r}
+All_MAT_type_count <- mat_hq_total %>%
+  filter(has_mtase == TRUE) %>%
+  group_by(sub_type_pred) %>%
+  summarise(type_count = n(), type_proportion = n()/nrow(mat_hq_total ))
+
+All_MAT_mod_count <- mat_hq_total  %>%
+  filter(has_mtase == TRUE) %>%
+  group_by(mod_type_pred) %>%
+  summarise(mod_type_count = n(), mod_type_proportion = n()/nrow(mat_hq_total ))
+
+
+
+All_MAT_combined <- bind_rows(
+  All_MAT_type_count %>%
+    rename(count = type_count, proportion = type_proportion, category = sub_type_pred) %>%
+    mutate(type = "sub_type"),
+  All_MAT_mod_count %>%
+    rename(count = mod_type_count, proportion = mod_type_proportion, category = mod_type_pred) %>%
+    mutate(type = "mod_type")
+)
+
+category_colors <- c(
+  "m" = "#1f77b4", 
+  "ac" = "#aec7e8", 
+  "Type_IIG" = "#80B9C8", 
+  "Type_III" = "#247D7F", 
+  "Type_I" = "#44916F", 
+  "Type_II" = "#B2D9C4"
+)
+
+combined_plot <- ggplot(All_MAT_combined, aes(x = type, y = proportion, fill = category)) +
+  geom_bar(stat = "identity", position = "stack", color = "white", width = 0.5, linewidth = 1) +
+  geom_text(aes(label = c("I", "II", "IIG", "III", "6mA/4mC", "5mC", "NA")), position = position_stack(vjust = 0.5), size = 2, family = "helvetica") +
+  scale_x_discrete(labels = c("sub_type" = "RM system type", "mod_type" = "Modification type")) +
+  labs(x = NULL, y = "MTases [%]") +
+  scale_fill_manual(values = category_colors) +
+  theme_classic() +
+  theme(panel.spacing = unit(2, "lines"),
+    text = element_text(size=12, color = "black"),
+    title = element_text(size = 7),
+    axis.text = element_text(color = "black", size = 5),
+    axis.title = element_text(size = 7),
+    axis.text.x = element_text(size = 5),
+    legend.position = "none",
+    plot.caption = element_text(hjust = 0),
+    plot.background = element_rect(fill = "white",colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.background = element_rect(fill = "transparent",colour = NA)
+  )
+
+combined_plot
+ 
+```
+
+```{r}
+layout <- "
+AAAAAA
+BBCCDD
+"
+#png("...", height = 18, width = 18, unit = "cm", res = 600, bg = "white")
+combined_plot_facet_single_row + barplot_proportion_plt + combined_plot + RM_count_plot +  plot_layout(design = layout) & plot_annotation(tag_levels = "a", theme = theme(text = element_text(family = "helvetica")))
+#dev.off()
+```
+
+# Supplementary files (Bin consensus and MTase-linker)
+
+
+```{r}
+mat_hq_total_supp <- mat_hq_total %>%
+  mutate(sample = recode(sample,
+                        "monocultures" = "Monocultures",
+                        "fecal_simple_recovered" = "Simple fecal",
+                        "ZymoFecal" = "Zymo fecal",
+                        "fecal_inhouse" = "Fecal inhouse",
+                        "anaerobic_digester" = "Anaerobic digester",
+                        "mfd02199_backup" = "Soil"))
+
+
+nat_hq_total_supp <- nat_hq_total %>%
+  mutate(sample = recode(sample,
+                        "monocultures" = "Monocultures",
+                        "fecal_simple_recovered" = "Simple fecal",
+                        "ZymoFecal" = "Zymo fecal",
+                        "fecal_inhouse" = "Fecal inhouse",
+                        "anaerobic_digester" = "Anaerobic digester",
+                        "mfd02199_backup" = "Soil"))
+```
+
+
+
+
