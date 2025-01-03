@@ -4,3 +4,5 @@ bioRxiv preprint: [Nanomotif: Identification and Exploitation of DNA Methylation
 
 Repo for the Nanomotif tools: [Nanomotif](https://github.com/MicrobialDarkMatter/nanomotif)
 
+Repo for reproducing contamination removal and inclusion benchmark can be found [here](https://github.com/SebastianDall/nanomotif-binnary-benchmark)
+
